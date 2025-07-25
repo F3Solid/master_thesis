@@ -1,0 +1,77 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{graphicx} % images
+\usepackage[acronym]{glossaries} % Acronyms
+\usepackage{hyperref} % Hyperlinks
+\usepackage{physics} % Physics symbols
+
+\newacronym{lrt}{LRT}{Likelihood Ratio Test}
+
+\title{Project Summary}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Where I stood}
+I developed an easy \acrfull{lrt} to test wheter, inside a certain mass bin, the ratio of the number of events \(\alpha = \dfrac{N_1}{N_2}\) between two different measurments is different than some threshold \(\alpha_0\), with a certain confidence level \(\text{c.l.}\) (let's say \(95\%\)).
+
+\begin{multline*}
+    N_1, N_2 \longrightarrow N_2, \alpha \longrightarrow \\
+    \lambda_\text{LR}\ (\text{Test statistic; asymtotically}\ \chi^2\ \text{distributed}) \longrightarrow \\
+    \text{p-value} \longrightarrow \text{is}\ \alpha \neq \alpha_0 \text{?}
+\end{multline*}
+
+Reverting the test, gives what \(\alpha\) has to be measured to conclude that \(\alpha \neq \alpha_0\) with a certain confidence level. This implies solving for \(\alpha\) the following equation:
+
+\[\xi \alpha_0^{\dfrac{\alpha}{1 + \alpha}} - \alpha_0 - 1 = 0\]
+where
+\[\xi = \qty[\exp\qty(\dfrac{\lambda_\text{LR}}{2 N_2}) \qty(1 + \dfrac{1}{\alpha})^\alpha \qty(1 + \alpha)]^\frac{1}{1 + \alpha}\]
+The solutions are the intercepts of the curve with the \(x\) axis here: \url{https://www.desmos.com/calculator/shw88qougk}.
+
+\section{Where I am now}
+
+I tried to relate the number of events inside a mass bin to the actual merger rate. After some research, I figured out that whatever I was going to write should have included the spacetime volume sensitivity of the detector (Equation 15 here \url{https://iopscience.iop.org/article/10.3847/2041-8205/833/1/L1/pdf}). That's how reformulated the problem:
+
+\begin{itemize}
+    \item Focus on a certain mass bin $\Delta m_i$
+    \item The merger rate per unit volume is $\dfrac{d^2N}{dt_s dV_c}$ , where $dt_s$ is the infinitesimal time interval in the source frame, and $dV_c$ and is the infinitesimal volume associated to a redshift interval $dz$
+    \item Write the merger rate in the mass bin $\Delta m_i$ as $R(\Delta m_i) = \int_{\Delta m_i} dm \int d\theta \dfrac{d^4N}{dm d\theta dt_s dV_c}$ , where $\theta$ is the parameter space of an event
+    \item Change variable: $dV_c = \dfrac{dV_c}{dz} dz$ ; $dt_s = \dfrac{dt_s}{dt_o} dt_o$
+    \item $\dfrac{d^4N}{dm d\theta dt_s dV_c} = \dfrac{d^4N}{dm d\theta dt_o dz} \dfrac{dz}{dV_c} \dfrac{dt_o}{dt_s}$ , where $\dfrac{dt_o}{dt_s} = 1+z$
+    \item Introduce the detection probability $p_\text{det}(\theta, m ,z)$ such that $d^4N_\text{obs} = p_\text{det}(\theta, m ,z) d^4N$
+    \item We have: $R(\Delta m_i) = \int_{\Delta m_i} dm \int d\theta \int_0^{z_{\text{max}, i}} dz \dfrac{d^4N_\text{obs}}{dm d\theta dt_o dz} \dfrac{dz}{dV_c} \dfrac{1+z}{p_\text{det}(\theta, m, z)}$ , where $z_{\text{max}, i}$ is the maximum (observed/observable) redshift in the bin $\Delta m_i$
+    \item If we are counting events: $R(\Delta m_i) = \dfrac{1}{T} \sum_{j=1}^{N_i} \dfrac{dz}{dV_c}(z_j) \dfrac{1+z_j}{p_\text{det}(\theta_j, m_j, z_j)}$ , where $N_i$ is the number of events observed inside the bin $\Delta m_i$ , and $T$ is the total observation time
+    \item \textbf{Define} $C(\theta, m, z) = T \int_0^{z_{\text{max}, i}} dz \dfrac{dV_c}{dz} \dfrac{p_\text{det}(\theta, m, z)}{1+z}$
+    \item For the $j\text{-th}$ event: $C(\theta_j, m_j, z_j) = T \qty[\dfrac{dV_c}{dz}(z_j) \dfrac{p_\text{det}(\theta_j, m_j, z_j)}{1+z_j}]$
+    \item \textbf{Then}: $R(\Delta m_i) = \sum_{j=1}^{N_i} \dfrac{1}{C(\theta_j, m_j, z_j)}$.
+    \item If we have the posterior of the $j\text{-th}$ event, we can rewrite: $R(\Delta m_i) \simeq \sum_{j=1}^{N_i} \dfrac{1}{\langle C(\theta, m, z)\rangle_j}$ , where $\langle C(\theta, m, z)\rangle_j = \int d\theta C(\theta, m, z) p(\theta | \text{data}_j) \simeq \dfrac{1}{M_j} \sum_{k=1}^{M_j} C(\theta_{j, k}, m_{j, k}, z_{j, k})$ and $M_j$ is the number of samples drawn from the posterior of the $j\text{-th}$ event.
+    \item \textbf{Finally}: $R(\Delta m_i) = N_i \left\langle \dfrac{1}{C(\theta, m, z)} \right\rangle_i$, where\\
+    $\left\langle \dfrac{1}{C(\theta, m, z)} \right\rangle_i = \dfrac{1}{N_i} \sum_{j=1}^{N_i} \dfrac{1}{\langle C(\theta, m, z) \rangle_j}$
+\end{itemize} 
+
+In my reformulation nearly all the physics should be encoded in the detection probability \(p_\text{det}(\theta, m, z)\).
+
+\subsection{How to extend the \acrshort{lrt} to the merger rate}
+
+\begin{itemize}
+    \item Suppose two measurments of the merger rate in a certain mass bin $\Delta m_i$: $R_1(\Delta m_i)$ and $R_2(\Delta m_i)$.
+    \item Define $A_i = \dfrac{R_1(\Delta m_i)}{R_2(\Delta m_i)} = \alpha_i a_i$, where\\
+    $\alpha_i = \dfrac{N_{1, i}}{N_{2, i}}$ and $a_i = \dfrac{\left\langle \dfrac{1}{C(\theta, m, z)} \right\rangle_{1, i}}{\left\langle \dfrac{1}{C(\theta, m, z)} \right\rangle_{2, i}}$
+    \item I want to test whether $A_i \neq A_0$ with a certain confidence level $\Longrightarrow$ test wheter $\alpha_i \neq \alpha_0 = \dfrac{A_0}{a_i}$. This approach should work because after the measurments, $a_i$ is just a number.
+\end{itemize}
+
+Under this light, the test functional form is the same but for a change of variable. Once we fix \(a_i\), I can revert the test like before to know what I have to measure to conclude that \(A_i \neq A_0\) with a certain confidence level. The result are the intercepts of the red curve with the \(x\) axis here: \url{https://www.desmos.com/calculator/defltq9len} (different link than above).
+
+My general understanding of the problem is that \(a_i\) is some proxy of the sensitivity of the detector in the mass bin \(\Delta m_i\). Therefore the idea is that, for a fixed value of \(\alpha\) (the countings rate I'm going to get between two different measurments), I can predict what value of \(a_i\) I will need to say that \(A \neq A_0\). This information might be translated into some requirment on the detection probability. Following the same logic used for \(\alpha\), the result for \(a\) are the intercepts of the green curve with the \(x\) axis at the same link above here.
+
+\section{Doubts}
+
+\begin{itemize}
+    \item Maybe my reformulation is wrong. I hope not that much
+    \item Not 100\% sure that treating \(a\) like a number works as I think. It depends on the number of events after all. However should be fine if it is obtainable in closed form from the data (I think).
+\end{itemize}
+
+I have some more other plots, but the math is fully covered in the links above.
+
+\end{document}
