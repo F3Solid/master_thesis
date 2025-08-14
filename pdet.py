@@ -85,3 +85,51 @@ def VT_pop_uniform(T_obs, z, m, cell_grid_dim=100, mc_n_samples=2000):
         VT[i, j] = res
 
     return VT
+
+# Computes the spacetime-volume of a (m, z) cell assuming a uniform population in m and z
+# using montecarlo integration for a fixed mass ratio q = m2 / m1, where m2 <= m1
+def VT_pop_uniform_cell_q(T_obs, z_min, z_max, m_min, m_max, q, mc_n_samples=10000):
+    # Uniform sampling of m1 and z in the cell. m2 = m1 * q
+    m1_samples = np.random.uniform(m_min, m_max, mc_n_samples)
+    m2_samples = m1_samples * q
+    z_samples = np.random.uniform(z_min, z_max, mc_n_samples)
+
+    # Compute the comsological part using vectorized function calls
+    # The differential_comoving_volume function returns the result per unit solid angle
+    dcomv = 1 / (1 + z_samples) * 4 * np.pi * Planck18.differential_comoving_volume(z_samples).to_value()
+
+    # Compute p_det for each sample
+    p_det = p(m1_samples, m2_samples, z_samples)
+
+    # Montecarlo integration
+    VT = T_obs * (z_max - z_min) * (m_max - m_min) * np.mean(dcomv * p_det)
+
+    return VT
+
+# Support function for multiprocessing
+def _VT_pop_uniform_cell_q_worker(args):
+    i, j, T_obs, z_min, z_max, m_min, m_max, q, mc_n_samples = args
+    return i, j, VT_pop_uniform_cell_q(T_obs, z_min, z_max, m_min, m_max, q, mc_n_samples)
+
+def VT_pop_uniform_q(T_obs, z, m1, q, mc_n_samples=2000):
+    # Get lower and upper boundaries of the cells
+    z_left, z_right = z[:-1], z[1:]
+    m1_left, m1_right = m1[:-1], m1[1:]
+
+    # Initialize the result variable
+    VT = np.zeros((len(z) - 1, len(m1) - 1))
+
+    # Initialize the list of arguments to be passed to the computation function
+    args = [(i, j, T_obs, z_l, z_r, m1_l, m1_r, q, mc_n_samples)
+            for (i, (z_l, z_r)) in enumerate(zip(z_left, z_right)) for (j, (m1_l, m1_r)) in enumerate(zip(m1_left, m1_right))]
+    
+    # Use unordered multiprocessing for the computation
+    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+        results = list(tqdm(pool.imap_unordered(_VT_pop_uniform_cell_q_worker, args), total=len(args),
+                            desc='Computing VT for each (m, z) pair for a uniformly distributed population of sources with fixed q = {0}'.format(q)))
+    
+    # Reorder and return the results
+    for i, j, res in results:
+        VT[i, j] = res
+
+    return VT
