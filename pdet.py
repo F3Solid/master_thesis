@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 from tqdm.auto import tqdm
 import multiprocessing
 import gwdet
@@ -111,6 +112,7 @@ def _VT_pop_uniform_cell_q_worker(args):
     i, j, T_obs, z_min, z_max, m_min, m_max, q, mc_n_samples = args
     return i, j, VT_pop_uniform_cell_q(T_obs, z_min, z_max, m_min, m_max, q, mc_n_samples)
 
+# Compute VT for each cell in a (m, z) grid, for a fixed mass ratio
 def VT_pop_uniform_q(T_obs, z, m1, q, mc_n_samples=2000):
     # Get lower and upper boundaries of the cells
     z_left, z_right = z[:-1], z[1:]
@@ -133,3 +135,106 @@ def VT_pop_uniform_q(T_obs, z, m1, q, mc_n_samples=2000):
         VT[i, j] = res
 
     return VT
+
+# A class to describe a mass-redshift bin
+class MZbin:
+    def __init__(self, minf, msup, zinf, zsup):
+        self.minf = minf
+        self.msup = msup
+        self.zinf = zinf
+        self.zsup = zsup
+
+# Child of the MZbin class. This bin considers only binaries with a fixed mass ratio q
+class MZQbin(MZbin):
+    def __init__(self, minf, msup, zinf, zsup, q): # q = m2 / m1, with m2 <= m1
+        super().__init__(minf, msup, zinf, zsup)
+        self.q = q
+    
+    # Compute VT for the bin using montecarlo integration
+    def VTmc(self, Tobs, mcn=100000):
+        self.Tobs = Tobs
+        # from pdet import VT_pop_uniform_cell_q
+        self.VT = VT_pop_uniform_cell_q(Tobs, self.zinf, self.zsup, self.minf, self.msup, self.q, mcn)
+        return self.VT
+    
+    # Computes the confidence interval for the countings ratio using the LRT statistics (see bin_comparison_2)
+    def alphaLRT(self, bin2, cl, R1_R2, N2, Tobs=1, mcn=100000):
+        lambda_LR_target = scipy.stats.chi2.isf(cl, 1)
+
+        for bin in (self, bin2):
+            if not hasattr(bin, 'VT'):
+                bin.VTmc(Tobs, mcn)
+        a = bin2.VT / self.VT
+        N1_N2_0_ref = R1_R2 / a
+
+        alpha_eq = lambda x, N_2, alpha_0_ref: ((np.exp(lambda_LR_target / (2 * N_2)) *\
+                                                 (1 + 1 / x) ** x * (1 + x)) ** (1 / (1 + x))) * alpha_0_ref ** (x / (1 + x)) - alpha_0_ref - 1
+        from scipy.optimize.elementwise import find_root
+        if np.isscalar(N2):
+            N2 = np.array([N2])
+        # Remember that you might want to make the interval searched by the solver wider
+        alpha_target_sx = np.array([find_root(alpha_eq, (0.01, N1_N2_0_ref), args=(n_2, N1_N2_0_ref)).x for n_2 in N2])
+        alpha_target_dx = np.array([find_root(alpha_eq, (N1_N2_0_ref, 100), args=(n_2, N1_N2_0_ref)).x for n_2 in N2])
+
+        return alpha_target_sx, alpha_target_dx, N1_N2_0_ref, a
+    
+    # Returns samples of the countings ratio using the fact that
+    # the countings ratio is distributed following a beta prima distribution
+    def alphaBayesHist(self, bin2, R1_R2, N2, Tobs=1, mcn=100000, alpha_prior=0.5, beta_prior=0, nsamples=100000):
+        for bin in (self, bin2):
+            if not hasattr(bin, 'VT'):
+                bin.VTmc(Tobs, mcn)
+        a = bin2.VT / self.VT
+        N1_N2 = R1_R2 / a
+        N1 = N1_N2 * N2
+
+        alpha1, beta1 = alpha_prior + N1, beta_prior + 1
+        alpha2, beta2 = alpha_prior + N2, beta_prior + 1
+
+        l1_l2_samples = scipy.stats.betaprime.rvs(alpha1, alpha2, scale=beta2/beta1, size=nsamples)
+
+        return l1_l2_samples, N1_N2, a
+    
+    # Computes the confidence interval for the countings ratio using the fact that
+    # the countings ratio is distributed following a beta prima distribution
+    def alphaBayesCI(self, interval, bin2, R1_R2, N2, Tobs=1, mcn=100000, alpha_prior=0.5, beta_prior=0):
+        for bin in (self, bin2):
+            if not hasattr(bin, 'VT'):
+                bin.VTmc(Tobs, mcn)
+        a = bin2.VT / self.VT
+        N1_N2 = R1_R2 / a
+        N1 = N1_N2 * N2
+
+        alpha1, beta1 = alpha_prior + N1, beta_prior + 1
+        alpha2, beta2 = alpha_prior + N2, beta_prior + 1
+
+        median = scipy.stats.betaprime.median(alpha1, alpha2, scale=beta2/beta1)
+        CI = scipy.stats.betaprime.interval(interval, alpha1, alpha2, scale=beta2/beta1)
+
+        return (CI[0], median, CI[1]), N1_N2, a
+    
+# Support function for multiprocessing
+def _alphaBayesCI_worker(args):
+    i, j, interval, bin2, R1_R2, bin_z, N2, Tobs, mcn, alpha_prior, beta_prior = args
+    return i, j, bin_z.alphaBayesCI(interval, bin2, R1_R2, N2, Tobs, mcn, alpha_prior, beta_prior)
+
+# Computes the confidence interval for the counting ratio on a (R1_R2, bin_z) grid
+# using a reference bin2_ref having a reference number of events N2_ref.
+# The default values of mcn is smaller for saving time
+def alphaBayesCI_map(interval, bin2_ref, R1_R2_axis, bins_z_axis, N2_ref, Tobs=1, mcn=10000, alpha_prior=0.5, beta_prior=0):
+    # Initialize the result variable as a list (use list comprehension)
+    alpha_CI = [[None for _ in range(len(bins_z_axis))] for _ in range(len(R1_R2_axis))]
+
+    # Initialize the list of arguments to be passed to the computation function
+    args = [(i, j, interval, bin2_ref, R1_R2, bin_z, N2_ref, Tobs, mcn, alpha_prior, beta_prior) for (i, R1_R2) in enumerate(R1_R2_axis) for (j, bin_z) in enumerate(bins_z_axis)]
+
+    # Use unordered multiprocessing for the computation
+    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+        results = list(tqdm(pool.imap_unordered(_alphaBayesCI_worker, args), total=len(args),
+                            desc='Computing the {0}% confidence interval for each (R1_R2, bin_z) pair for a uniformly distributed population of sources with fixed q = {1}'.format(interval * 100, bin2_ref.q)))
+    
+    # Reorder and return the results
+    for i, j, res in results:
+        alpha_CI[i][j] = res
+
+    return alpha_CI
