@@ -58,7 +58,7 @@ def VT_pop_uniform_cell(T_obs, z_min, z_max, m_min, m_max, cell_grid_dim=100, mc
 
     return VT
 
-# Support function for multiprocessing
+# Utility function for multiprocessing
 def _VT_pop_uniform_cell_worker(args):
     i, j, T_obs, z_min, z_max, m_min, m_max, cell_grid_dim, mc_n_samples = args
     return i, j, VT_pop_uniform_cell(T_obs, z_min, z_max, m_min, m_max, cell_grid_dim, mc_n_samples)
@@ -107,7 +107,7 @@ def VT_pop_uniform_cell_q(T_obs, z_min, z_max, m_min, m_max, q, mc_n_samples=100
 
     return VT
 
-# Support function for multiprocessing
+# Utility function for multiprocessing
 def _VT_pop_uniform_cell_q_worker(args):
     i, j, T_obs, z_min, z_max, m_min, m_max, q, mc_n_samples = args
     return i, j, VT_pop_uniform_cell_q(T_obs, z_min, z_max, m_min, m_max, q, mc_n_samples)
@@ -180,6 +180,7 @@ class MZQbin(MZbin):
     
     # Returns samples of the countings ratio using the fact that
     # the countings ratio is distributed following a beta prima distribution
+    # See https://en.wikipedia.org/wiki/Beta_prime_distribution#Generalization for details
     def alphaBayesHist(self, bin2, R1_R2, N2, Tobs=1, mcn=100000, alpha_prior=0.5, beta_prior=0, nsamples=100000):
         for bin in (self, bin2):
             if not hasattr(bin, 'VT'):
@@ -213,28 +214,56 @@ class MZQbin(MZbin):
 
         return (CI[0], median, CI[1]), N1_N2, a
     
-# Support function for multiprocessing
-def _alphaBayesCI_worker(args):
-    i, j, interval, bin2, R1_R2, bin_z, N2, Tobs, mcn, alpha_prior, beta_prior = args
-    return i, j, bin_z.alphaBayesCI(interval, bin2, R1_R2, N2, Tobs, mcn, alpha_prior, beta_prior)
+    # Computes the confidence interval for the rate ratio using the fact that
+    # the countings ratio is distributed following a beta prima distribution
+    # The rate ratio is obtained multiplying the latter by the VT ratio.
+    # See https://en.wikipedia.org/wiki/Beta_prime_distribution#Properties for details
+    def RateRatioBayesCI(self, interval, bin2, N1_N2, N2, Tobs=1, mcn=100000, alpha_prior=0.5, beta_prior=0):
+        for bin in (self, bin2):
+            if not hasattr(bin, 'VT'):
+                bin.VTmc(Tobs, mcn)
+        a = bin2.VT / self.VT
+        N1 = N1_N2 * N2
+        R1_R2 = N1_N2 * a
+
+        alpha1, beta1 = alpha_prior + N1, beta_prior + 1
+        alpha2, beta2 = alpha_prior + N2, beta_prior + 1
+
+        median = scipy.stats.betaprime.median(alpha1, alpha2, scale=beta2/beta1 * a)
+        CI = scipy.stats.betaprime.interval(interval, alpha1, alpha2, scale=beta2/beta1 * a)
+
+        return (CI[0], median, CI[1]), R1_R2, a
+    
+# Utility function to initilize bins using multiprocessing  
+def _bin_initializer_worker(args):
+    i, bin, T_obs, mcn = args
+    bin.VTmc(T_obs, mcn)
+    return i, bin
 
 # Computes the confidence interval for the counting ratio on a (R1_R2, bin_z) grid
 # using a reference bin2_ref having a reference number of events N2_ref.
-# The default values of mcn is smaller for saving time
 def alphaBayesCI_map(interval, bin2_ref, R1_R2_axis, bins_z_axis, N2_ref, Tobs=1, mcn=10000, alpha_prior=0.5, beta_prior=0):
     # Initialize the result variable as a list (use list comprehension)
     alpha_CI = [[None for _ in range(len(bins_z_axis))] for _ in range(len(R1_R2_axis))]
 
-    # Initialize the list of arguments to be passed to the computation function
-    args = [(i, j, interval, bin2_ref, R1_R2, bin_z, N2_ref, Tobs, mcn, alpha_prior, beta_prior) for (i, R1_R2) in enumerate(R1_R2_axis) for (j, bin_z) in enumerate(bins_z_axis)]
-
-    # Use unordered multiprocessing for the computation
-    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
-        results = list(tqdm(pool.imap_unordered(_alphaBayesCI_worker, args), total=len(args),
-                            desc='Computing the {0}% confidence interval for each (R1_R2, bin_z) pair for a uniformly distributed population of sources with fixed q = {1}'.format(interval * 100, bin2_ref.q)))
-    
-    # Reorder and return the results
-    for i, j, res in results:
-        alpha_CI[i][j] = res
+    with tqdm(total=len(R1_R2_axis) * len(bins_z_axis), desc='Computing number of events ratio map') as pbar:
+        for i, R1_R2 in enumerate(R1_R2_axis):
+            for j, bin_z in enumerate(bins_z_axis):
+                alpha_CI[i][j] = bin_z.alphaBayesCI(interval, bin2_ref, R1_R2, N2_ref, Tobs, mcn, alpha_prior, beta_prior)
+                pbar.update(1)
 
     return alpha_CI
+
+# Computes the confidence interval for the rate ratio on a (N1_N2, bin_z) grid
+# using a reference bin2_ref having a reference number of events N2_ref.
+def RateRatioBayesCI_map(interval, bin2_ref, N1_N2_axis, bins_z_axis, N2_ref, Tobs=1, mcn=10000, alpha_prior=0.5, beta_prior=0):
+    # Initialize the result variable as a list (use list comprehension)
+    R_CI = [[None for _ in range(len(bins_z_axis))] for _ in range(len(N1_N2_axis))]
+
+    with tqdm(total=len(N1_N2_axis) * len(bins_z_axis), desc='Computing rate ratio map') as pbar:
+        for i, N1_N2 in enumerate(N1_N2_axis):
+            for j, bin_z in enumerate(bins_z_axis):
+                R_CI[i][j] = bin_z.RateRatioBayesCI(interval, bin2_ref, N1_N2, N2_ref, Tobs, mcn, alpha_prior, beta_prior)
+                pbar.update(1)
+
+    return R_CI
