@@ -242,6 +242,7 @@ def _bin_initializer_worker(args):
 
 # Computes the confidence interval for the counting ratio on a (R1_R2, bin_z) grid
 # using a reference bin2_ref having a reference number of events N2_ref.
+# Note that VT is computed only if bins have not been initialized
 def alphaBayesCI_map(interval, bin2_ref, R1_R2_axis, bins_z_axis, N2_ref, Tobs=1, mcn=10000, alpha_prior=0.5, beta_prior=0):
     # Initialize the result variable as a list (use list comprehension)
     alpha_CI = [[None for _ in range(len(bins_z_axis))] for _ in range(len(R1_R2_axis))]
@@ -256,6 +257,7 @@ def alphaBayesCI_map(interval, bin2_ref, R1_R2_axis, bins_z_axis, N2_ref, Tobs=1
 
 # Computes the confidence interval for the rate ratio on a (N1_N2, bin_z) grid
 # using a reference bin2_ref having a reference number of events N2_ref.
+# Note that VT is computed only if bins have not been initialized
 def RateRatioBayesCI_map(interval, bin2_ref, N1_N2_axis, bins_z_axis, N2_ref, Tobs=1, mcn=10000, alpha_prior=0.5, beta_prior=0):
     # Initialize the result variable as a list (use list comprehension)
     R_CI = [[None for _ in range(len(bins_z_axis))] for _ in range(len(N1_N2_axis))]
