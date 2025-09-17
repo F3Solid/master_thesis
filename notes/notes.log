@@ -1,12 +1,12 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.7.15)  20 JUL 2025 22:08
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2025.9.11)  17 SEP 2025 14:03
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**"/Users/Federico/Documents/Corsi di studio/Università/Tesi/Codes/notes/notes.tex"
-(/Users/Federico/Documents/Corsi di studio/Università/Tesi/Codes/notes/notes.tex
+**"/Users/Federico/Documents/Corsi di studio/Università/Tesi/master_thesis/notes/notes.tex"
+(/Users/Federico/Documents/Corsi di studio/Università/Tesi/master_thesis/notes/notes.tex
 LaTeX2e <2025-06-01> patch level 1
-L3 programming layer <2025-07-11>
+L3 programming layer <2025-08-13>
 (/usr/local/texlive/2025/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2025/01/22 v1.4n Standard LaTeX document class
 (/usr/local/texlive/2025/texmf-dist/tex/latex/base/size12.clo
@@ -42,7 +42,7 @@ File: pdftex.def 2024/04/13 v1.2c Graphics/color driver for pdftex
 \Gin@req@height=\dimen149
 \Gin@req@width=\dimen150
 ) (/usr/local/texlive/2025/texmf-dist/tex/latex/glossaries/base/glossaries.sty
-Package: glossaries 2025/05/14 v4.7 (NLCT)
+Package: glossaries 2025/08/11 v4.8 (NLCT)
  (/usr/local/texlive/2025/texmf-dist/tex/latex/base/ifthen.sty
 Package: ifthen 2024/03/16 v1.1e Standard LaTeX ifthen package (DPC)
 ) (/usr/local/texlive/2025/texmf-dist/tex/latex/xkeyval/xkeyval.sty
@@ -178,12 +178,12 @@ File: datatool-utf8.ldf 2025/04/25 v3.4.1 (NLCT)
 \glsshorttok=\toks31
 \glslongtok=\toks32
  (/usr/local/texlive/2025/texmf-dist/tex/latex/glossaries/styles/glossary-hypernav.sty
-Package: glossary-hypernav 2025/05/14 v4.7 (NLCT)
+Package: glossary-hypernav 2025/08/11 v4.8 (NLCT)
 ) (/usr/local/texlive/2025/texmf-dist/tex/latex/glossaries/styles/glossary-list.sty
-Package: glossary-list 2025/05/14 v4.7 (NLCT)
+Package: glossary-list 2025/08/11 v4.8 (NLCT)
 \glslistdottedwidth=\skip56
 ) (/usr/local/texlive/2025/texmf-dist/tex/latex/glossaries/styles/glossary-long.sty
-Package: glossary-long 2025/05/14 v4.7 (NLCT)
+Package: glossary-long 2025/08/11 v4.8 (NLCT)
  (/usr/local/texlive/2025/texmf-dist/tex/latex/tools/longtable.sty
 Package: longtable 2024-12-18 v4.23 Multi-page Table package (DPC)
 \LTleft=\skip57
@@ -206,7 +206,7 @@ Package: longtable 2024-12-18 v4.23 Multi-page Table package (DPC)
 \glsdescwidth=\skip61
 \glspagelistwidth=\skip62
 ) (/usr/local/texlive/2025/texmf-dist/tex/latex/glossaries/styles/glossary-super.sty
-Package: glossary-super 2025/05/14 v4.7 (NLCT)
+Package: glossary-super 2025/08/11 v4.8 (NLCT)
  (/usr/local/texlive/2025/texmf-dist/tex/latex/supertabular/supertabular.sty
 Package: supertabular 2024/07/20 v4.2c the supertabular environment
 \c@tracingst=\count328
@@ -225,7 +225,7 @@ Package: supertabular 2024/07/20 v4.2c the supertabular environment
 \ST@dimen=\dimen174
 \ST@pbox=\box61
 )) (/usr/local/texlive/2025/texmf-dist/tex/latex/glossaries/styles/glossary-tree.sty
-Package: glossary-tree 2025/05/14 v4.7 (NLCT)
+Package: glossary-tree 2025/08/11 v4.8 (NLCT)
 \l__glossaries_tree_max_known_level_int=\count329
 \l__glossaries_tree_offset_dim=\dimen175
 \l__glossaries_tree_namewidth_dim=\dimen176
@@ -338,19 +338,19 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 28
 ) (/usr/local/texlive/2025/texmf-dist/tex/latex/physics/physics.sty
 Package: physics 
  (/usr/local/texlive/2025/texmf-dist/tex/latex/l3packages/xparse/xparse.sty (/usr/local/texlive/2025/texmf-dist/tex/latex/l3kernel/expl3.sty
-Package: expl3 2025-07-11 L3 programming layer (loader) 
+Package: expl3 2025-08-13 L3 programming layer (loader) 
  (/usr/local/texlive/2025/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2025-06-09 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count342
 ))
 Package: xparse 2024-08-16 L3 Experimental document command parser
 )) (/usr/local/texlive/2025/texmf-dist/tex/latex/showlabels/showlabels.sty
-Package: showlabels 2022/07/18 v1.9.2
+Package: showlabels 2025/08/20 v1.9.3
 
-Package: `showlabels' v1.9.2 <2022/07/18>
+Package: `showlabels' v1.9.3 <2025/08/20>
 with amsmath equation tags
 \SL@labelposition=\count343
-) (/Users/Federico/Documents/Corsi di studio/Università/Tesi/Codes/notes/notes.aux)
+) (/Users/Federico/Documents/Corsi di studio/Università/Tesi/master_thesis/notes/notes.aux)
 \openout1 = `notes.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
@@ -391,7 +391,7 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 48
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ))
 Package hyperref Info: Link coloring OFF on input line 13.
- (/Users/Federico/Documents/Corsi di studio/Università/Tesi/Codes/notes/notes.out) (/Users/Federico/Documents/Corsi di studio/Università/Tesi/Codes/notes/notes.out)
+ (/Users/Federico/Documents/Corsi di studio/Università/Tesi/master_thesis/notes/notes.out) (/Users/Federico/Documents/Corsi di studio/Università/Tesi/master_thesis/notes/notes.out)
 \@outlinefile=\write3
 \openout3 = `notes.out'.
 
@@ -434,25 +434,26 @@ Overfull \hbox (57.0158pt too wide) in paragraph at lines 66--66
  []
 
 
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 77.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\langle' on input line 77.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\rangle' on input line 77.
-
-
 
 [3]
 
-[4] (/Users/Federico/Documents/Corsi di studio/Università/Tesi/Codes/notes/notes.aux)
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 80.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\langle' on input line 80.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `\rangle' on input line 80.
+
+
+
+[4] (/Users/Federico/Documents/Corsi di studio/Università/Tesi/master_thesis/notes/notes.aux)
  ***********
 LaTeX2e <2025-06-01> patch level 1
-L3 programming layer <2025-07-11>
+L3 programming layer <2025-08-13>
  ***********
 
 
@@ -462,18 +463,18 @@ Package rerunfilecheck Info: File `notes.out' has not changed.
 (rerunfilecheck)             Checksum: 88B598B5F3B9230927B40A50D06521D3;927.
  ) 
 Here is how much of TeX's memory you used:
- 16915 strings out of 467816
- 316648 string characters out of 5432252
- 779785 words of memory out of 5000000
- 45352 multiletter control sequences out of 15000+600000
+ 16915 strings out of 467800
+ 316761 string characters out of 5431882
+ 780186 words of memory out of 5000000
+ 45367 multiletter control sequences out of 15000+600000
  634886 words of font info for 68 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 78i,9n,79p,2580b,531s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 78i,9n,79p,2588b,521s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
-Output written on "/Users/Federico/Documents/Corsi di studio/Università/Tesi/Codes/notes/notes.pdf" (4 pages, 191049 bytes).
+Output written on "/Users/Federico/Documents/Corsi di studio/Università/Tesi/master_thesis/notes/notes.pdf" (4 pages, 193528 bytes).
 PDF statistics:
- 155 PDF objects out of 1000 (max. 8388607)
- 115 compressed objects within 2 object streams
- 25 named destinations out of 1000 (max. 500000)
+ 156 PDF objects out of 1000 (max. 8388607)
+ 116 compressed objects within 2 object streams
+ 26 named destinations out of 1000 (max. 500000)
  57 words of extra memory for PDF output out of 10000 (max. 10000000)
 

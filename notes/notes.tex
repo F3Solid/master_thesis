@@ -60,9 +60,9 @@ The idea is to use a statistical test to directly compare the number of events i
 \begin{itemize}
     \item The number of events inside each bin are poissonian distributed as \(\mathrm{Pois}(N_1 | \lambda_1)\) and \(\mathrm{Pois}(N_2 | \lambda_2)\). We are interested in the posterior distribution of the parameters \(\lambda_1\) and \(\lambda_2\).
     \item The likelihood is given by \(\mathcal{L}(N_1, N_2 | \lambda_1, \lambda_2) = \mathrm{Pois}(N_1 | \lambda_1) \mathrm{Pois}(N_2 | \lambda_2)\).
-    \item We need to choose a prior for $\lambda_1$ and $\lambda_2$. A convenient choice is the conjugate prior of the Poisson distribution: the Gamma distribution: \begin{equation} \label{eq:Gamma_dist}
+    \item We need to choose a prior for $\lambda_1$ and $\lambda_2$. A convenient choice is the conjugate prior of the Poisson distribution: the \textbf{Gamma distribution}: \begin{equation} \label{eq:Gamma_dist}
         p(\lambda) = \mathrm{Gamma}(\lambda | \alpha, \beta) = \dfrac{\beta^\alpha}{\Gamma(\alpha)} \lambda^{\alpha-1} \exp(-\beta\lambda) \text{.}
-    \end{equation}
+    \end{equation} where \(\Gamma\) is the Gamma function.
     \item In general the \textbf{posterior} is given by \(p(\lambda_1, \lambda_2 | N_1, N_2) \propto \mathcal{L}(N_1, N_2 | \lambda_1, \lambda_2) p(\lambda_1) p(\lambda_2)\), but using the fact that bins and priors are independent and thanks to conjugate priors we have that \begin{equation} \label{eq:joint_posterior}
         p(\lambda_1, \lambda_2 | N_1, N_2) = p(\lambda_1 | N_1) p(\lambda_2 | N_2) \text{,}
     \end{equation} where \begin{equation} \label{eq:posterior_lambda}
@@ -72,11 +72,14 @@ The idea is to use a statistical test to directly compare the number of events i
     \item A possibile choice for the parameters of the prior distribution might be the (uninformative) \textit{Jeffreys prior}: \(\alpha = 0.5\) and \(\beta = 0\).
     \item Now we can get the \textbf{posterior} of the \textbf{rates} inside each bin using \(R(\Delta m_i, \Delta z_j) = \dfrac{\lambda_{ij}}{\langle VT \rangle_{ij}}\), where $\lambda_{ij}$ are samples from the posterior of the bin.
     \item Most importantly we can get the \textbf{posterior} of rates \textbf{ratios}: \(\dfrac{R_1}{R_2} = \dfrac{\lambda_1}{\lambda_2}\dfrac{\dfrac{1}{\left\langle VT \right\rangle_1}}{\dfrac{1}{\left\langle VT \right\rangle_2}}\).
+    \item Actually the distribution of the ratio of two Gamma distributed random variables is also analytical and is given by the generalized \textbf{beta prime distribution} (also known as inverted beta distribution or beta distribution of the second kind): \begin{equation} \label{eq:betaprime_dist}
+        \beta'(x | \alpha, \beta, p, q) = \dfrac{p \qty(\dfrac{x}{q})^{\alpha p - 1} \qty(1 + \qty(\dfrac{x}{q})^{p})^{-\alpha -\beta}}{q B(\alpha, \beta)}
+    \end{equation} where \(B\) is the Beta function. Specifically, if \(X_k \sim \mathrm{Gamma}(\alpha_k, \beta_k)\) are independent, then \(\dfrac{X_1}{X_2} \sim \beta'(\alpha_1, \alpha_2, 1, \dfrac{\beta_2}{\beta_1})\). Moreover, it can be useful to know that if \(X \sim \beta'(\alpha, \beta, p, q)\), then \(kX \sim \beta'(\alpha, \beta, p, kq)\).
 \end{itemize}
 
 \subsubsection{How to compute \(\langle VT \rangle\)?}
 \begin{itemize}
-    \item \textbf{Simulated injections} from a given population model \(p(\theta)\).
+    \item From a given population model \(p(\theta)\).
     \item \textbf{Data driven} method assuming \(p_i(\theta) = \delta(\theta - \theta_i)\), where \(\theta_i\) are observed events: \begin{equation} \label{eq:VT_point}
         \langle VT \rangle = \dfrac{N_\text{obs}}{\hat{R}} = \dfrac{N_\text{obs} V_\text{bin} T_\text{obs}}{\sum_k^{N_\text{obs}} \dfrac{1+z_k}{p_{\text{det}, k}}}
     \end{equation}
