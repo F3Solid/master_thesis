@@ -1,3 +1,5 @@
 __pycache__
 MetalCosfr_cp_for_STM_analysis-main
 .ipynb_checkpoints/
+data/GWTC4/
+pdet_gwbench_grid_making.log
