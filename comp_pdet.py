@@ -1,7 +1,8 @@
 from joblib import Parallel, delayed
 from time import time as tt
 import numpy as np
-from gwbench import Network, angle_sampler, M_of_Mc_eta, f_isco_Msolar
+from gwbench import Network, angle_sampler, M_of_Mc_eta, f_isco_Msolar, get_cartesian_from_spherical
+from GWTC4 import spin_sampler_spherical
 from astropy.cosmology import Planck18
 from scipy.stats import norm
 
@@ -44,12 +45,18 @@ seed = None  # fix seed for reproducibility, or None for random
 # num_samples = int(1e2)  # number of samples for pdet calculation
 # iotas, ras, decs, psis = angle_sampler(num_samples, seed)
 
-def _snr(f, inj_params, iota, ra, dec, psi):
+def _snr(f, inj_params, iota, ra, dec, psi, chi1x, chi1y, chi1z, chi2x, chi2y, chi2z):
     # set angles for this sample
     inj_params["iota"] = iota
     inj_params["ra"] = ra
     inj_params["dec"] = dec
     inj_params["psi"] = psi
+    inj_params["chi1x"] = 0.0
+    inj_params["chi1y"] = 0.0
+    inj_params["chi1z"] = chi1z
+    inj_params["chi2x"] = 0.0
+    inj_params["chi2y"] = 0.0
+    inj_params["chi2z"] = chi2z
 
     # initialize network object, pass variables, and calculate SNRs
     net = Network(network_spec, logger_name="Network", logger_level="WARNING")
@@ -70,6 +77,7 @@ def snr(m1, m2, z, n_samples=1e2, n_jobs=-1):
         q = m1 / m2
     eta = q / (1 + q) ** 2
     M = m1 + m2
+    '''
     inj_params = {
         "Mc": M * eta ** (3 / 5),  # chirp mass in solar masses
         "eta": eta,  # symmetric mass ratio
@@ -83,6 +91,14 @@ def snr(m1, m2, z, n_samples=1e2, n_jobs=-1):
         "tc": 0.0,  # TODO check with the others, but should be fine
         "phic": 0.0,  # TODO check with the others, but should be fine
         }
+    '''
+    inj_params = {
+        "Mc": M * eta ** (3 / 5),  # chirp mass in solar masses
+        "eta": eta,  # symmetric mass ratio
+        "DL": Planck18.luminosity_distance(z).to_value(),  # luminosity distance in Mpc
+        "tc": 0.0,  # TODO check with the others, but should be fine
+        "phic": 0.0,  # TODO check with the others, but should be fine
+        }
     
     # frequency array for waveform and SNR calculation
     f_lo = 1.0
@@ -92,9 +108,13 @@ def snr(m1, m2, z, n_samples=1e2, n_jobs=-1):
     f = np.arange(f_lo, f_hi + df, df)
     
     iotas, ras, decs, psis = angle_sampler(int(n_samples), seed)
-
-    snrs = np.array(Parallel(n_jobs=n_jobs)(delayed(_snr)(f, inj_params, iota, ra, dec, psi)
-                                            for iota, ra, dec, psi in zip(iotas, ras, decs, psis)))
+    spin1s, spin2s = spin_sampler_spherical(int(n_samples), seed)
+    chi1xs, chi1ys, chi1zs = get_cartesian_from_spherical(*spin1s)
+    chi2xs, chi2ys, chi2zs = get_cartesian_from_spherical(*spin2s)
+    
+    snrs = np.array(Parallel(n_jobs=n_jobs)(delayed(_snr)(f, inj_params, iota, ra, dec, psi, chi1x, chi1y, chi1z, chi2x, chi2y, chi2z)
+                                            for iota, ra, dec, psi, chi1x, chi1y, chi1z, chi2x, chi2y, chi2z in
+                                            zip(iotas, ras, decs, psis, chi1xs, chi1ys, chi1zs, chi2xs, chi2ys, chi2zs)))
 
     return snrs
 
