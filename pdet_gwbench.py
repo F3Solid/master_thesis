@@ -1,18 +1,21 @@
 import numpy as np
-from scipy.interpolate import RegularGridInterpolator
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 from comp_pdet import pdet
 from tqdm.auto import tqdm
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, cpu_count
 import logging
 
-z_max_m_min = ((0.1, 1), (1, 30), (2, 75))
+z_max_m_min = ((0.1, 1), (1, 30))
 z_min_m_max = ((6, 10),)
 
-m1grid = np.concatenate((np.linspace(1, 20, 20, endpoint=False), np.linspace(20, 50, 20, endpoint=False), np.linspace(50, 100, 20)))
-m2grid = np.concatenate((np.linspace(1, 20, 20, endpoint=False), np.linspace(20, 50, 20, endpoint=False), np.linspace(50, 100, 20)))
-zgrid = np.concatenate((np.geomspace(1e-4, 1e-1, 100, endpoint=False), np.geomspace(1e-1, 1, 50, endpoint=False), np.geomspace(1, 10, 50)))
+m1grid = np.concatenate((np.linspace(1, 5, 15, endpoint=False),
+                         np.linspace(5, 15, 30, endpoint=False),
+                         np.linspace(15, 30, 15, endpoint=False),
+                         np.linspace(30, 40, 30, endpoint=False),
+                         np.linspace(40, 50, 10)))
+m2grid = np.copy(m1grid)
+zgrid = np.concatenate((np.geomspace(1e-4, 1e-1, 200, endpoint=False),
+                        np.geomspace(1e-1, 1, 50, endpoint=False),
+                        np.geomspace(1, 10, 50)))
 
 grids = (m1grid, m2grid, zgrid)
 pdet_for_interpolant = np.zeros([len(grid) for grid in grids])
@@ -58,11 +61,26 @@ meshgrid = meshgrid[p]
 
 print(np.prod(pdet_for_interpolant.shape), meshcoord.shape)
 
-def compute_pdet_for_interpolant(meshgrid, meshcoord=None, m1grid=None, m2grid=None, zgrid=None, pdet_for_interpolant=None, n_sample=1e3, n_jobs=-1, verbose=11, from_checkpoint=False, save_checkpoint=False, checkpoint_file_path="", save_step=100):
+def compute_pdet_for_interpolant(meshgrid, meshcoord=None, m1grid=None, m2grid=None, zgrid=None, pdet_for_interpolant=None,
+                                 n_sample=1e3, n_jobs=-1, verbose=11,
+                                 from_checkpoint=False, save_checkpoint=False, checkpoint_file_path="", save_step=-1):
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    
+    logger.propagate = False
+    
+    if not logger.handlers:
+        file_handler = logging.FileHandler("pdet_gwbench_grid_making.log")
+        file_handler.setLevel(logging.INFO)
+        
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        file_handler.setFormatter(formatter)
+        
+        logger.addHandler(file_handler)
+        
     chunks_integrity_error_msg = "Ops, something went wrong while splitting meshgrid and meshcoords. Hopefully you will never see this message."
-    logging.basicConfig(filename="pdet_gwbench_grid_making.log",
-                        level=logging.INFO,
-                        format="%(asctime)s - %(levelname)s - %(message)s")
+    save_step = -save_step * cpu_count() - 1 if save_step < 0 else save_step
+    
     if not from_checkpoint:
         if not save_checkpoint: # Just return meshevalues
             meshvalues = np.array(Parallel(n_jobs=n_jobs, verbose=verbose)(delayed(pdet)(m1, m2, z, n_samples=n_sample, n_jobs=1)
@@ -79,16 +97,17 @@ def compute_pdet_for_interpolant(meshgrid, meshcoord=None, m1grid=None, m2grid=N
                 pars_are_present = pars_are_present and par_is_present
             assert pars_are_present, "Provide also the m1grid, m2grid, zgrid and pdet_for_interpolant arrays. They will be saved in the checkpoint file."
             assert 1 <= save_step <= len(meshgrid), f"The saving step must be greater than 1 and smaller than the length of meshgrid ({len(meshgrid)})."
-            logging.info("Starting pdet computation with gwbench on the provided m1, m2, z grid using checkpoint file...")
-            logging.info(f"Splitting grids into chunks with length of roughly {save_step}.")
+            logger.info("Starting pdet computation with gwbench on the provided m1, m2, z grid using checkpoint file...")
+            logger.info(f"Splitting grids into chunks with length of roughly {save_step}.")
             # Split the grid into chunks based on save_step parameter
             mgridchunks = np.array_split(meshgrid, int(len(meshgrid) / save_step))
             mcoordchunks = np.array_split(meshcoord, int(len(meshcoord) / save_step))
             # Check chunks integrity
             assert sum([len(grid) for grid in mgridchunks]) == len(meshgrid) and sum([len(grid) for grid in mcoordchunks]) == len(meshcoord), chunks_integrity_error_msg
             chunks_lengths = [len(chunk) for chunk in mgridchunks]
-            logging.info(f"Grids with length of {len(meshgrid)} divided into {len(mgridchunks)} chunks. " +
-                         f"{chunks_lengths.count(min(chunks_lengths))} with length {min(chunks_lengths)} and {chunks_lengths.count(max(chunks_lengths))} with length {max(chunks_lengths)}")
+            logger.info(f"Grids with length of {len(meshgrid)} divided into {len(mgridchunks)} chunks. " +
+                        f"{chunks_lengths.count(min(chunks_lengths))} with length {min(chunks_lengths)} and " +
+                        f"{chunks_lengths.count(max(chunks_lengths))} with length {max(chunks_lengths)}")
             
             # Initialize results variables
             completed_tasks = 0
@@ -96,33 +115,34 @@ def compute_pdet_for_interpolant(meshgrid, meshcoord=None, m1grid=None, m2grid=N
 
             # Initialize checkpoint file.
             # n_sample and completed_tasks are not arrays, therefore you will need to int() the 0-dim array associated with them while reading the file
-            logging.info(f"Initializing checkpoint file at {checkpoint_file_path}.")
+            logger.info(f"Initializing checkpoint file at {checkpoint_file_path}.")
             np.savez(checkpoint_file_path, m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant,
                      meshgrid=meshgrid, meshcoord=meshcoord, n_sample=n_sample, meshvalues=meshvalues, completed_tasks=completed_tasks)
-            logging.info(f"Checkpoint file created at {checkpoint_file_path}.")
+            logger.info(f"Checkpoint file created at {checkpoint_file_path}.")
             
             # Compute and save the meshvalues for each chunk
-            logging.info("Starting pdet computation...")
+            logger.info("Starting pdet computation...")
             for i, (mgrid, mcoord) in enumerate(zip(mgridchunks, mcoordchunks)):
                 assert len(mgrid) == len(mcoord), chunks_integrity_error_msg
-                logging.info(f"Working on chunk n. {i + 1} of {len(mgridchunks)}. {completed_tasks} of {len(meshgrid)} tasks completed.")
-                mvalues = np.array(Parallel(n_jobs=n_jobs, verbose=verbose)(delayed(pdet)(m1, m2, z, n_samples=n_sample, n_jobs=1) for m1, m2, z in mgrid))
+                logger.info(f"Working on chunk n. {i + 1} of {len(mgridchunks)}. {completed_tasks} of {len(meshgrid)} tasks completed.")
+                mvalues = np.array(Parallel(n_jobs=n_jobs, verbose=verbose)(delayed(pdet)(m1, m2, z, n_samples=n_sample, n_jobs=1)
+                                                                            for m1, m2, z in mgrid))
                 meshvalues = np.concatenate((meshvalues, mvalues))
                 completed_tasks += len(mgrid)
                 np.savez(checkpoint_file_path, m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant,
                          meshgrid=meshgrid, meshcoord=meshcoord, n_sample=n_sample, meshvalues=meshvalues, completed_tasks=completed_tasks)
-                logging.info("Chunk completed. Progress saved.")
+                logger.info(f"Chunk n. {i + 1} completed. Progress saved.")
 
-            logging.info("Computation completed.")
+            logger.info("Computation completed.")
             # If everything went smooth, return meshvalues
             return meshvalues
     else: # Any parameter but for n_jobs, verbose and save_step will be ignored
         assert checkpoint_file_path != "", "Provide an existing checkpoint file path."
-        logging.info("Resuming pdet computation from checkpoint file...")
+        logger.info("Resuming pdet computation from checkpoint file...")
         # Load the checkpoint file
-        logging.info(f"Loading the checkpoint file at {checkpoint_file_path}.")
+        logger.info(f"Loading the checkpoint file at {checkpoint_file_path}.")
         chk_file = np.load(checkpoint_file_path)
-        logging.info(f"Checkpoint file at {checkpoint_file_path} loaded.")
+        logger.info(f"Checkpoint file at {checkpoint_file_path} loaded.")
         
         # Check parameters
         completed_tasks = int(chk_file['completed_tasks'])
@@ -142,43 +162,48 @@ def compute_pdet_for_interpolant(meshgrid, meshcoord=None, m1grid=None, m2grid=N
         pdet_for_interpolant = chk_file['pdet_for_interpolant']
         chk_file.close()
 
-        logging.info(f"{len(meshgrid[completed_tasks:]) - completed_tasks} remaining.")
+        logger.info(f"{len(meshgrid[completed_tasks:]) - completed_tasks} tasks remaining.")
 
         # Split the remaining grid into chunks based on save_step parameter
-        logging.info(f"Splitting remaining grids into chunks with length of roughly {save_step}.")
+        logger.info(f"Splitting remaining grids into chunks with length of roughly {save_step}.")
         mgridchunks = np.array_split(meshgrid[completed_tasks:], int(len(meshgrid[completed_tasks:]) / save_step))
         mcoordchunks = np.array_split(meshcoord[completed_tasks:], int(len(meshcoord[completed_tasks:]) / save_step))
         # Check chunks integrity
         assert sum([len(grid) for grid in mgridchunks]) == len(meshgrid[completed_tasks:]) and sum([len(grid) for grid in mcoordchunks]) == len(meshcoord[completed_tasks:]), chunks_integrity_error_msg
         chunks_lengths = [len(chunk) for chunk in mgridchunks]
-        logging.info(f"Remaining grids with length of {len(meshgrid[completed_tasks:])} divided into {len(mgridchunks)} chunks. " +
-                     f"{chunks_lengths.count(min(chunks_lengths))} with length {min(chunks_lengths)} and {chunks_lengths.count(max(chunks_lengths))} with length {max(chunks_lengths)}")
+        logger.info(f"Remaining grids with length of {len(meshgrid[completed_tasks:])} divided into {len(mgridchunks)} chunks. " +
+                    f"{chunks_lengths.count(min(chunks_lengths))} with length {min(chunks_lengths)} and " +
+                    f"{chunks_lengths.count(max(chunks_lengths))} with length {max(chunks_lengths)}")
 
         # Compute and save the meshvalues for each chunk
-        logging.info("Resuming pdet computation...")
+        logger.info("Resuming pdet computation...")
         for i, (mgrid, mcoord) in enumerate(zip(mgridchunks, mcoordchunks)):
             assert len(mgrid) == len(mcoord), chunks_integrity_error_msg
-            logging.info(f"Working on chunk n. {i + 1} of {len(mgridchunks)}. {completed_tasks} of {len(meshgrid)} tasks completed.")
-            mvalues = np.array(Parallel(n_jobs=n_jobs, verbose=verbose)(delayed(pdet)(m1, m2, z, n_samples=n_sample, n_jobs=1) for m1, m2, z in mgrid))
+            logger.info(f"Working on chunk n. {i + 1} of {len(mgridchunks)}. {completed_tasks} of {len(meshgrid)} tasks completed.")
+            mvalues = np.array(Parallel(n_jobs=n_jobs, verbose=verbose)(delayed(pdet)(m1, m2, z, n_samples=n_sample, n_jobs=1)
+                                                                        for m1, m2, z in mgrid))
             meshvalues = np.concatenate((meshvalues, mvalues))
             completed_tasks += len(mgrid)
             np.savez(checkpoint_file_path, m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant,
                      meshgrid=meshgrid, meshcoord=meshcoord, n_sample=n_sample, meshvalues=meshvalues, completed_tasks=completed_tasks)
-            logging.info("Chunk completed. Progress saved.")
+            logger.info(f"Chunk n. {i + 1} completed. Progress saved.")
 
         logging.info("Computation completed.")
         if completed_tasks != len(meshgrid):
-            logging.warning(f"There is a mismatch between the length of meshgrid ({len(meshgrid)}) and the completed tasks ({completed_tasks})")
-        # If everything went smooth, return all the grids, both meshed and non-meshed
-        return m1grid, m2grid, zgrid, pdet_for_interpolant, meshgrid, meshcoord, meshvalues
+            logger.warning(f"There is a mismatch between the length of meshgrid ({len(meshgrid)}) and the completed tasks ({completed_tasks})")
+        # If everything went smooth, return meshvalues
+        return meshvalues
 
-'''
-meshvalues = compute_pdet_for_interpolant(meshgrid, meshcoord, m1grid, m2grid, zgrid, pdet_for_interpolant, n_sample=1e2, save_checkpoint=True, save_step=75, checkpoint_file_path="data/pdet_computation_checkpoint.npz", from_checkpoint=True)
+meshvalues = compute_pdet_for_interpolant(meshgrid, meshcoord, m1grid, m2grid, zgrid, pdet_for_interpolant,
+                                          n_sample=5e2,
+                                          save_checkpoint=True,
+                                          save_step=-10,
+                                          checkpoint_file_path="data/pdet_computation_checkpoint.npz",
+                                          from_checkpoint=False)
 
 for ijk, val in zip(meshcoord, meshvalues):
     i, j, k = ijk
-    pdet_for_interpolation[i, j, k] = val
-    pdet_for_interpolation[j, i, k] = val
+    pdet_for_interpolant[i, j, k] = val
+    pdet_for_interpolant[j, i, k] = val
 
-np.savez("data/pdet_nsamples_1e2_(attempt_2)", m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolation)
-'''
+np.savez("data/pdet_nsamples_5e2_(attempt_3)", m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant)

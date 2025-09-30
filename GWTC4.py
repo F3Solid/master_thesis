@@ -3,9 +3,6 @@ from scipy.stats import rv_histogram, truncnorm
 from sklearn.neighbors import KernelDensity
 from popsummary.popresult import PopulationResult
 
-import logging
-logging.getLogger('root').setLevel(logging.ERROR)
-
 # https://zenodo.org/records/16911563
 filename = "data/GWTC4/BBHSpin_MagTruncnormIidTiltIsotropicTruncnormNid.h5"
 result = PopulationResult(fname=filename)
