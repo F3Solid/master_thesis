@@ -188,7 +188,7 @@ def compute_pdet_for_interpolant(meshgrid, meshcoord=None, m1grid=None, m2grid=N
                      meshgrid=meshgrid, meshcoord=meshcoord, n_sample=n_sample, meshvalues=meshvalues, completed_tasks=completed_tasks)
             logger.info(f"Chunk n. {i + 1} completed. Progress saved.")
 
-        logging.info("Computation completed.")
+        logger.info("Computation completed.")
         if completed_tasks != len(meshgrid):
             logger.warning(f"There is a mismatch between the length of meshgrid ({len(meshgrid)}) and the completed tasks ({completed_tasks})")
         # If everything went smooth, return meshvalues
@@ -199,11 +199,11 @@ meshvalues = compute_pdet_for_interpolant(meshgrid, meshcoord, m1grid, m2grid, z
                                           save_checkpoint=True,
                                           save_step=-10,
                                           checkpoint_file_path="data/pdet_computation_checkpoint.npz",
-                                          from_checkpoint=False)
+                                          from_checkpoint=True)
 
 for ijk, val in zip(meshcoord, meshvalues):
     i, j, k = ijk
     pdet_for_interpolant[i, j, k] = val
     pdet_for_interpolant[j, i, k] = val
 
-np.savez("data/pdet_nsamples_5e2_(attempt_3)", m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant)
+np.savez("data/pdet_nsamples_5e2_(attempt_4)", m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant)
