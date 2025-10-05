@@ -7,6 +7,18 @@ from astropy.cosmology import Planck18
 
 p = gwdet.detectability()
 
+file = np.load("data/pdet_nsamples_5e2_(attempt_2).npz")
+m1grid, m2grid, zgrid, pdet_for_interpolant = [file[key] for key in file.files]
+
+pdet_interpolant = scipy.interpolate.RegularGridInterpolator((m1grid, m2grid, zgrid), pdet_for_interpolant,
+                                                             bounds_error=False, fill_value=None,
+                                                             method='linear')
+
+# Override gwdet probability calculator with our own
+def p(m1, m2, z):
+    pdet = pdet_interpolant(np.array([m1, m2, z]).T)
+    return pdet[0] if len(pdet) == 1 else pdet
+
 # Returns the indexes of the selected cell and the median of p_det in the cell computed varying
 # one of the mass component of the binary
 def p_det_median_cell(_m, m, _z):
