@@ -60,22 +60,14 @@ def merge_pdet_grids(new_grids, existing_grid_file_path="", overwrite=False):
     # due to different floating point handling within numpy routines between different CPUs
     decimals = 12 # Number of decimals to round array values to
     old_grids = np.load(existing_grid_file_path) # keys: m1grid, m2grid, zgrid, pdet_for_interpolant
-    print("Ordine delle chiavi caricate dal file .npz:", list(old_grids.keys()))
+    keys = ("m1grid", "m2grid", "zgrid", "pdet_for_interpolant")
     assert len(old_grids) == len(new_grids) == 4, "The new_grids list must be of length 4, containing the new m1grid, m2grid, zgrid and pdet_for_interpolant"
-    new_grids = {key: val for key, val in zip(old_grids.keys(), new_grids)} # m1grid, m2grid, zgrid, pdet_for_interpolant
+    new_grids = {key: val for key, val in zip(keys, new_grids)} # m1grid, m2grid, zgrid, pdet_for_interpolant
 
     # Make the new grids
     # keys: m1grid, m2grid, zgrid
     unq_grids = {key: np.unique(np.round(np.concatenate((old_grids[key], new_grids[key])), decimals=decimals))
-                 for key in [*old_grids.keys()][:-1]}
-    
-    print("\n--- DEBUG: Controllo dimensioni griglie unificate ---")
-    for key, grid_array in unq_grids.items():
-        print(f"Shape di unq_grids['{key}']: {grid_array.shape}")
-    
-    pdet_shape = tuple(len(g) for g in unq_grids.values())
-    print(f"Shape calcolata per pdet_for_interpolant: {pdet_shape}")
-    print("--- FINE BLOCCO DI DEBUG ---\n")
+                 for key in keys[:-1]}
 
     # Make the new pdet matrix
     pdet_for_interpolant = np.full([len(grid) for grid in unq_grids.values()], np.nan)
