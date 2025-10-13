@@ -4,7 +4,7 @@ from pdet_gwbench import *
 z_max_m_min = ((0.1, 1), (1, 30), (2, 85))
 z_min_m_max = ((6, 10), (8, 15))
 
-old_grids = np.load("data/pdet_nsamples_5e2_(attempt_3).npz")
+old_grids = np.load("data/pdet_nsamples_5e2_(attempt_4).npz")
 
 m1grid = np.linspace(50, 100, 51)
 m2grid = np.copy(m1grid)
@@ -38,4 +38,4 @@ for ijk, val in zip(meshcoord, meshvalues):
     pdet_for_interpolant[i, j, k] = val
     pdet_for_interpolant[j, i, k] = val
 
-np.savez("data/pdet_nsamples_5e2_(attempt_4)", m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant)
+np.savez_compressed("data/pdet_nsamples_5e2_(attempt_5)", m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant)
