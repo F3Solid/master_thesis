@@ -2,6 +2,7 @@ import numpy as np
 import scipy
 from tqdm.auto import tqdm
 import multiprocessing
+from joblib import Parallel, delayed
 import gwdet
 from astropy.cosmology import Planck18
 
@@ -255,6 +256,7 @@ def _bin_initializer_worker(args):
 # Computes the confidence interval for the counting ratio on a (R1_R2, bin_z) grid
 # using a reference bin2_ref having a reference number of events N2_ref.
 # Note that VT is computed only if bins have not been initialized
+'''
 def alphaBayesCI_map(interval, bin2_ref, R1_R2_axis, bins_z_axis, N2_ref, Tobs=1, mcn=10000, alpha_prior=0.5, beta_prior=0):
     # Initialize the result variable as a list (use list comprehension)
     alpha_CI = [[None for _ in range(len(bins_z_axis))] for _ in range(len(R1_R2_axis))]
@@ -266,10 +268,30 @@ def alphaBayesCI_map(interval, bin2_ref, R1_R2_axis, bins_z_axis, N2_ref, Tobs=1
                 pbar.update(1)
 
     return alpha_CI
+'''
+def alphaBayesCI_map(interval, bin2_ref, R1_R2_axis, bins_z_axis, N2_ref, Tobs=1, mcn=10000, alpha_prior=0.5, beta_prior=0, n_jobs=-1):
+    # Initialize the result variable as a list (use list comprehension)
+    alpha_CI = [[None for _ in range(len(bins_z_axis))] for _ in range(len(R1_R2_axis))]
+
+    meshcoord, meshgrid = [], []
+    for i, R1_R2 in enumerate(R1_R2_axis):
+        for j, bin_z in enumerate(bins_z_axis):
+            meshcoord.append((i, j))
+            meshgrid.append((R1_R2, bin_z))
+
+    meshvalues = Parallel(n_jobs=n_jobs, verbose=1)(delayed(bin_z.alphaBayesCI)(interval, bin2_ref, R1_R2, N2_ref, Tobs, mcn, alpha_prior, beta_prior)
+                                                    for R1_R2, bin_z in meshgrid)
+
+    for ij, val in zip(meshcoord, meshvalues):
+        i, j = ij
+        alpha_CI[i][j] = val
+        
+    return alpha_CI
 
 # Computes the confidence interval for the rate ratio on a (N1_N2, bin_z) grid
 # using a reference bin2_ref having a reference number of events N2_ref.
 # Note that VT is computed only if bins have not been initialized
+'''
 def RateRatioBayesCI_map(interval, bin2_ref, N1_N2_axis, bins_z_axis, N2_ref, Tobs=1, mcn=10000, alpha_prior=0.5, beta_prior=0):
     # Initialize the result variable as a list (use list comprehension)
     R_CI = [[None for _ in range(len(bins_z_axis))] for _ in range(len(N1_N2_axis))]
@@ -279,5 +301,24 @@ def RateRatioBayesCI_map(interval, bin2_ref, N1_N2_axis, bins_z_axis, N2_ref, To
             for j, bin_z in enumerate(bins_z_axis):
                 R_CI[i][j] = bin_z.RateRatioBayesCI(interval, bin2_ref, N1_N2, N2_ref, Tobs, mcn, alpha_prior, beta_prior)
                 pbar.update(1)
+
+    return R_CI
+'''
+def RateRatioBayesCI_map(interval, bin2_ref, N1_N2_axis, bins_z_axis, N2_ref, Tobs=1, mcn=10000, alpha_prior=0.5, beta_prior=0, n_jobs=-1):
+    # Initialize the result variable as a list (use list comprehension)
+    R_CI = [[None for _ in range(len(bins_z_axis))] for _ in range(len(N1_N2_axis))]
+
+    meshcoord, meshgrid = [], []
+    for i, N1_N2 in enumerate(N1_N2_axis):
+        for j, bin_z in enumerate(bins_z_axis):
+            meshcoord.append((i, j))
+            meshgrid.append((N1_N2, bin_z))
+
+    meshvalues = Parallel(n_jobs=n_jobs, verbose=1)(delayed(bin_z.RateRatioBayesCI)(interval, bin2_ref, N1_N2, N2_ref, Tobs, mcn, alpha_prior, beta_prior)
+                                                    for N1_N2, bin_z in meshgrid)
+
+    for ij, val in zip(meshcoord, meshvalues):
+        i, j = ij
+        R_CI[i][j] = val
 
     return R_CI
