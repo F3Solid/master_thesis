@@ -8,8 +8,23 @@ from astropy.cosmology import Planck18
 
 p = gwdet.detectability()
 
-file = np.load("data/pdet_nsamples_5e2_(attempt_2).npz")
-m1grid, m2grid, zgrid, pdet_for_interpolant = [file[key] for key in file.files]
+file = np.load("data/pdet_nsamples_5e2_(attempt_5).npz")
+keys = ("m1grid", "m2grid", "zgrid", "pdet_for_interpolant")
+m1grid, m2grid, zgrid, pdet_for_interpolant = [file[key] for key in keys]
+file.close()
+
+# Couple of lines to initialze a partially broken pdet file
+#----------------------------------------------------
+try_to_initialize = False
+if not try_to_initialize:
+    assert np.sum(np.isnan(pdet_for_interpolant)) == 0, "The pdet matrix contains some NaN."
+else:
+    from pdet_gwbench import initialize_pdet_grids
+    z_max_m_min = ((0.1, 1), (1, 30), (2, 85))
+    z_min_m_max = ((6, 10), (8, 15))
+    meshcoord, meshgrid, pdet_for_interpolant  = initialize_pdet_grids((m1grid, m2grid, zgrid), z_max_m_min, z_min_m_max, pdet_for_interpolant=pdet_for_interpolant)
+    assert meshcoord.shape == (0, 3), "The pdet matrix contains some NaN even after inizialization."
+#----------------------------------------------------
 
 pdet_interpolant = scipy.interpolate.RegularGridInterpolator((m1grid, m2grid, zgrid), pdet_for_interpolant,
                                                              bounds_error=False, fill_value=None,
@@ -210,8 +225,8 @@ class MZQbin(MZbin):
         return l1_l2_samples, N1_N2, a
     
     # Computes the confidence interval for the countings ratio using the fact that
-    # the countings ratio is distributed following a beta prima distribution
-    def alphaBayesCI(self, interval, bin2, R1_R2, N2, Tobs=1, mcn=100000, alpha_prior=0.5, beta_prior=0):
+    # the countings ratio is distributed following a beta prime distribution
+    def alphaBayesCI(self, cl, bin2, R1_R2, N2, Tobs=1, mcn=100000, alpha_prior=0.5, beta_prior=0):
         for bin in (self, bin2):
             if not hasattr(bin, 'VT'):
                 bin.VTmc(Tobs, mcn)
@@ -223,15 +238,15 @@ class MZQbin(MZbin):
         alpha2, beta2 = alpha_prior + N2, beta_prior + 1
 
         median = scipy.stats.betaprime.median(alpha1, alpha2, scale=beta2/beta1)
-        CI = scipy.stats.betaprime.interval(interval, alpha1, alpha2, scale=beta2/beta1)
+        CI = scipy.stats.betaprime.interval(cl, alpha1, alpha2, scale=beta2/beta1)
 
         return (CI[0], median, CI[1]), N1_N2, a
     
     # Computes the confidence interval for the rate ratio using the fact that
-    # the countings ratio is distributed following a beta prima distribution
+    # the countings ratio is distributed following a beta prime distribution.
     # The rate ratio is obtained multiplying the latter by the VT ratio.
     # See https://en.wikipedia.org/wiki/Beta_prime_distribution#Properties for details
-    def RateRatioBayesCI(self, interval, bin2, N1_N2, N2, Tobs=1, mcn=100000, alpha_prior=0.5, beta_prior=0):
+    def RateRatioBayesCI(self, cl, bin2, N1_N2, N2, Tobs=1, mcn=100000, alpha_prior=0.5, beta_prior=0):
         for bin in (self, bin2):
             if not hasattr(bin, 'VT'):
                 bin.VTmc(Tobs, mcn)
@@ -243,7 +258,7 @@ class MZQbin(MZbin):
         alpha2, beta2 = alpha_prior + N2, beta_prior + 1
 
         median = scipy.stats.betaprime.median(alpha1, alpha2, scale=beta2/beta1 * a)
-        CI = scipy.stats.betaprime.interval(interval, alpha1, alpha2, scale=beta2/beta1 * a)
+        CI = scipy.stats.betaprime.interval(cl, alpha1, alpha2, scale=beta2/beta1 * a)
 
         return (CI[0], median, CI[1]), R1_R2, a
     
@@ -252,6 +267,44 @@ def _bin_initializer_worker(args):
     i, bin, T_obs, mcn = args
     bin.VTmc(T_obs, mcn)
     return i, bin
+
+# Bin initializer: Computes and saves VT
+# Note that the VT attribute is modified in place for each element of the list
+def bin_initializer(bin_list, T_obs, mcn=100000):
+    args = [(i, bin, T_obs, mcn) for i, bin in enumerate(bin_list)]
+
+    # Use unordered multiprocessing to initialize bins
+    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+        results = list(tqdm(pool.imap_unordered(_bin_initializer_worker, args), total=len(args),
+                            desc='Initilizing bins: computing VT'))
+        
+    # Reorder and return the results
+    for i, bin in results:
+        bin_list[i] = bin
+
+    return bin_list
+
+# Computes the confidence interval for VT2 given VT1 using the fact that
+# the countings ratio is distributed following a beta prima distribution.
+# The VT ratio is obtained as the rate ratio divided by the counting ratio,
+# where the latter is distributed following a beta prime distribution.
+# VT1 can be an array, while R1_R2 and N1_N2 should be floats
+def VT2BayesCI(cl, VT1, R1_R2, N1_N2, N2, alpha_prior=0.5, beta_prior=0):
+    N1 = N1_N2 * N2
+
+    alpha1, beta1 = alpha_prior + N1, beta_prior + 1
+    alpha2, beta2 = alpha_prior + N2, beta_prior + 1
+
+    # The generalization for the distribution of the inverse of a beta prime distributed random variable
+    # involves switching alpha1 and alpha2; moreover one should take the inverse of the scale parameter,
+    # but I could not find an explicit reference for this. This is implemented here but will not affect
+    # our results as long as beta2/beta1=1 (which is our case).
+    # See RateRatioBayesCI for the effect of the multiplication by R1_R2 (in order to get the VT ratio)
+    # and by VT1 (in order to get VT2)
+    median = scipy.stats.betaprime.median(alpha2, alpha1, scale=beta1/beta2 * R1_R2 * VT1)
+    CI = scipy.stats.betaprime.interval(cl, alpha2, alpha1, scale=beta1/beta2 * R1_R2 * VT1)
+
+    return (CI[0], median, CI[1])
 
 # Computes the confidence interval for the counting ratio on a (R1_R2, bin_z) grid
 # using a reference bin2_ref having a reference number of events N2_ref.
@@ -316,6 +369,24 @@ def RateRatioBayesCI_map(interval, bin2_ref, N1_N2_axis, bins_z_axis, N2_ref, To
 
     meshvalues = Parallel(n_jobs=n_jobs, verbose=1)(delayed(bin_z.RateRatioBayesCI)(interval, bin2_ref, N1_N2, N2_ref, Tobs, mcn, alpha_prior, beta_prior)
                                                     for N1_N2, bin_z in meshgrid)
+
+    for ij, val in zip(meshcoord, meshvalues):
+        i, j = ij
+        R_CI[i][j] = val
+
+    return R_CI
+
+def RateRatioBayesCI_ZZmap(interval, N1_N2, bins_z1_axis, bins_z2_axis, N2_ref, Tobs=1, mcn=10000, alpha_prior=0.5, beta_prior=0, n_jobs=-1):
+    R_CI = [[None for _ in range(len(bins_z1_axis))] for _ in range(len(bins_z2_axis))]
+
+    meshcoord, meshgrid = [], []
+    for i, bin_z2 in enumerate(bins_z2_axis):
+        for j, bin_z1 in enumerate(bins_z1_axis):
+            meshcoord.append((i, j))
+            meshgrid.append((bin_z2, bin_z1))
+
+    meshvalues = Parallel(n_jobs=n_jobs, verbose=1)(delayed(bin_z1.RateRatioBayesCI)(interval, bin_z2, N1_N2, N2_ref, Tobs, mcn, alpha_prior, beta_prior)
+                                                    for bin_z2, bin_z1 in meshgrid)
 
     for ij, val in zip(meshcoord, meshvalues):
         i, j = ij

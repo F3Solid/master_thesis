@@ -1,7 +1,6 @@
 import numpy as np
 from comp_pdet import pdet
 from joblib import Parallel, delayed, cpu_count
-from tqdm.auto import tqdm
 import logging
 
 # Initializes meshgrid, meshcoord and pdet_for_interpolant from fresh m1, m2 and z grids
@@ -173,8 +172,8 @@ def compute_pdet_for_interpolant(meshgrid, meshcoord=None, m1grid=None, m2grid=N
             # Initialize checkpoint file.
             # n_sample and completed_tasks are not arrays, therefore you will need to int() the 0-dim array associated with them while reading the file
             logger.info(f"Initializing checkpoint file at {checkpoint_file_path}.")
-            np.savez(checkpoint_file_path, m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant,
-                     meshgrid=meshgrid, meshcoord=meshcoord, n_sample=n_sample, meshvalues=meshvalues, completed_tasks=completed_tasks)
+            np.savez_compressed(checkpoint_file_path, m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant,
+                                meshgrid=meshgrid, meshcoord=meshcoord, n_sample=n_sample, meshvalues=meshvalues, completed_tasks=completed_tasks)
             logger.info(f"Checkpoint file created at {checkpoint_file_path}.")
             
             # Compute and save the meshvalues for each chunk
@@ -186,8 +185,8 @@ def compute_pdet_for_interpolant(meshgrid, meshcoord=None, m1grid=None, m2grid=N
                                                                             for m1, m2, z in mgrid))
                 meshvalues = np.concatenate((meshvalues, mvalues))
                 completed_tasks += len(mgrid)
-                np.savez(checkpoint_file_path, m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant,
-                         meshgrid=meshgrid, meshcoord=meshcoord, n_sample=n_sample, meshvalues=meshvalues, completed_tasks=completed_tasks)
+                np.savez_compressed(checkpoint_file_path, m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant,
+                                    meshgrid=meshgrid, meshcoord=meshcoord, n_sample=n_sample, meshvalues=meshvalues, completed_tasks=completed_tasks)
                 logger.info(f"Chunk n. {i + 1} completed. Progress saved.")
 
             logger.info("Computation completed.")
@@ -241,8 +240,8 @@ def compute_pdet_for_interpolant(meshgrid, meshcoord=None, m1grid=None, m2grid=N
                                                                         for m1, m2, z in mgrid))
             meshvalues = np.concatenate((meshvalues, mvalues))
             completed_tasks += len(mgrid)
-            np.savez(checkpoint_file_path, m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant,
-                     meshgrid=meshgrid, meshcoord=meshcoord, n_sample=n_sample, meshvalues=meshvalues, completed_tasks=completed_tasks)
+            np.savez_compressed(checkpoint_file_path, m1grid=m1grid, m2grid=m2grid, zgrid=zgrid, pdet_for_interpolant=pdet_for_interpolant,
+                                meshgrid=meshgrid, meshcoord=meshcoord, n_sample=n_sample, meshvalues=meshvalues, completed_tasks=completed_tasks)
             logger.info(f"Chunk n. {i + 1} completed. Progress saved.")
 
         logger.info("Computation completed.")
