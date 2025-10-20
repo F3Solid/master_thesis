@@ -120,12 +120,7 @@ def snr(m1, m2, z, n_samples=1e2, n_jobs=-1):
 
 def pdet(m1, m2, z, n_samples=1e4, n_jobs=-1):
     snrs = snr(m1, m2, z, n_samples, n_jobs)
-    n_det = 0
-    for _snr in snrs[:, -1]:
-        if norm.rvs(loc=_snr) > snr_thr:
-            n_det += 1
-    
-    return n_det / int(n_samples)
+    return np.sum(norm.rvs(loc=snrs[:, -1]) > snr_thr) / int(n_samples)
 
 # # run the sampling in parallel using joblib
 # ttt = tt()

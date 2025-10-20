@@ -86,12 +86,9 @@ def merge_pdet_grids(new_grids, existing_grid_file_path="", overwrite=False):
         else:
             nan_mask = np.isnan(pdet_for_interpolant[*IJK])
             pdet_for_interpolant[*[indx[nan_mask] for indx in IJK]] = grids["pdet_for_interpolant"][nan_mask]
+
+    old_grids.close()
     
-    '''
-    # Return only the merged grids
-    for key in unq_grids.keys():
-        unq_grids[key] = unq_grids[key].values
-    '''
     unq_grids["pdet_for_interpolant"] = pdet_for_interpolant
     
     return unq_grids
