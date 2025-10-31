@@ -1,5 +1,5 @@
 \documentclass[12pt,a4paper]{article}
-\usepackage{graphicx} % images
+\usepackage{graphicx} % Images
 \usepackage[acronym]{glossaries} % Acronyms
 \usepackage{hyperref} % Hyperlinks
 \usepackage{physics} % Physics symbols
@@ -47,7 +47,7 @@ The idea is to use a statistical test to directly compare the number of events i
 
 \subsection{Binomial test}
 \begin{itemize}
-    \item Use the fact that if two independent variables \(X_1\) and \(X_2\) are poissonian distributed with \(/\lambda_1\) and $\lambda_2$, then the distribution of \(X_1\) conditioned on \(X_1 + X_2\) is a binomial distribution with \(p = \dfrac{\lambda_1}{\lambda_1 + \lambda_2}\) and \(k = X_1 + X_2\).
+    \item Use the fact that if two independent variables \(X_1\) and \(X_2\) are poissonian distributed with \(\lambda_1\) and $\lambda_2$, then the distribution of \(X_1\) conditioned on \(X_1 + X_2\) is a binomial distribution with \(p = \dfrac{\lambda_1}{\lambda_1 + \lambda_2}\) and \(k = X_1 + X_2\).
     \item \textbf{Define} \(N_1/N_2 = \lambda_1/\lambda_2 = \alpha\).
     \item \textbf{Then} \(p = \dfrac{\alpha}{1+\alpha}\) and \(p(N_1 | N_1 + N_2) = \mathrm{Bin}(\dfrac{\alpha}{1+\alpha}, N_1 + N_2)\).
     \item The cumulative probability is given by: \begin{equation} \label{eq:binomial}
@@ -75,6 +75,7 @@ The idea is to use a statistical test to directly compare the number of events i
     \item Actually the distribution of the ratio of two Gamma distributed random variables is also analytical and is given by the generalized \textbf{beta prime distribution} (also known as inverted beta distribution or beta distribution of the second kind): \begin{equation} \label{eq:betaprime_dist}
         \beta'(x | \alpha, \beta, p, q) = \dfrac{p \qty(\dfrac{x}{q})^{\alpha p - 1} \qty(1 + \qty(\dfrac{x}{q})^{p})^{-\alpha -\beta}}{q B(\alpha, \beta)}
     \end{equation} where \(B\) is the Beta function. Specifically, if \(X_k \sim \mathrm{Gamma}(\alpha_k, \beta_k)\) are independent, then \(\dfrac{X_1}{X_2} \sim \beta'(\alpha_1, \alpha_2, 1, \dfrac{\beta_2}{\beta_1})\). Moreover, it can be useful to know that if \(X \sim \beta'(\alpha, \beta, p, q)\), then \(kX \sim \beta'(\alpha, \beta, p, kq)\).
+    \item What if we want the \(\langle VT \rangle_2 / \langle VT \rangle_1\) distribution for a given value of \(R_1 / R_2\)? The answer is still analytical due to the fact that if \(X \sim \beta'(\alpha_1, \alpha_2)\), then \(\dfrac{1}{X} \sim \beta'(\alpha_2, \alpha_1)\). We can make use of that because \(\dfrac{N_1}{N_2} \sim \beta'(\alpha_1, \alpha_2, 1, \dfrac{\beta_2}{\beta_1}) = \beta'(\alpha_1, \alpha_2)\) if \(\beta_2 / \beta_1 = 1\) (which is our case).
 \end{itemize}
 
 \subsubsection{How to compute \(\langle VT \rangle\)?}
