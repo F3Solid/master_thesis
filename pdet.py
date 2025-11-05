@@ -3,10 +3,10 @@ import scipy
 from tqdm.auto import tqdm
 import multiprocessing
 from joblib import Parallel, delayed
-import gwdet
+# import gwdet
 from astropy.cosmology import Planck18
 
-p = gwdet.detectability()
+# p = gwdet.detectability()
 
 file = np.load("data/pdet_nsamples_5e2_(attempt_5).npz")
 keys = ("m1grid", "m2grid", "zgrid", "pdet_for_interpolant")

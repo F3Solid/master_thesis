@@ -4,8 +4,8 @@ from sklearn.neighbors import KernelDensity
 from popsummary.popresult import PopulationResult
 
 # https://zenodo.org/records/16911563
-filename = "data/GWTC4/BBHSpin_MagTruncnormIidTiltIsotropicTruncnormNid.h5"
-result = PopulationResult(fname=filename)
+filepath = "data/GWTC4/BBHSpin_MagTruncnormIidTiltIsotropicTruncnormNid.h5"
+result = PopulationResult(fname=filepath)
 
 # print(result.get_metadata('hyperparameters'))
 
