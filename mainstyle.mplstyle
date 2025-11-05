@@ -1,0 +1,9 @@
+font.size : 14
+
+xtick.top: True
+ytick.right: True
+xtick.major.size: 4
+ytick.major.size: 4
+
+legend.frameon: False
+legend.framealpha: 0.5
