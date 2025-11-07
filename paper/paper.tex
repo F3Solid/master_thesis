@@ -1,0 +1,148 @@
+\documentclass[twocolumn,a4paper]{article}
+
+\usepackage{amsmath} % Math symbols
+\usepackage{amssymb} % Math symbols
+\usepackage{graphicx} % Images
+\usepackage{caption}
+\usepackage{xcolor} % Colors
+\usepackage[inline]{enumitem} % Inline lists
+\usepackage[acronym]{glossaries} % Acronyms
+\usepackage{hyperref} % Hyperlinks
+\usepackage{physics} % Physics symbols
+\usepackage{showlabels} % Show labels
+\usepackage{natbib} % Bibliography
+\usepackage{cleveref} % Clever references. Must be loaded last
+
+\newacronym{gw}{GW}{gravitational wave}
+\newacronym{lvk}{LVK}{LIGO/Virgo/KAGRA}
+\newacronym{bbh}{BBH}{binary black hole}
+\newacronym{bhb}{BHB}{black hole binary}
+\newacronym{cbc}{CBC}{compact binary coalescence}
+\newacronym{bh}{BH}{black hole}
+\newacronym{ns}{NS}{neutron star}
+\newacronym{sfh}{SFH}{star formation history}
+\newacronym{dtd}{DTD}{delay time distribution}
+\newacronym{dco}{DCO}{double compact object}
+\newacronym{mzb}{\(\text{MZbin}\)}{\(\text{mass} \times \text{redshift bin}\)}
+\newacronym{z_t}{\(z_t\)}{target redshift}
+\newacronym{lrt}{LRT}{likelihood-ratio test}
+\newacronym{mle}{MLE}{maximum likelihood estimators}
+\newacronym{ce}{CE}{common envelope}
+\newacronym{mt}{MT}{mass transfer}
+\newacronym{che}{CHE}{chemically homogeneous evolution}
+\newacronym{ppisne}{PPISNe}{pulsation pair-instability supernovae}
+\newacronym{pisn}{PISN}{pair instability supernovae}
+
+\newcommand{\pdet}{p_\text{det}}
+\newcommand{\VT}{\left\langle VT\right\rangle}
+\newcommand{\msun}{\mathrm{M}_\odot}
+\newcommand{\Rate}{\mathcal{R}}
+\newcommand{\zref}{z_\text{ref}}
+\newcommand{\Tobs}{T_\text{obs}}
+\newcommand{\yr}{\mathrm{yr}}
+
+\begin{document}
+
+\title{Title}
+\maketitle
+
+\begin{abstract}
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+The current generation of ground-based \acrfull{gw} detectors, the \acrfull{lvk} network, constrains the redshift distribution of \acrfull{bbh} mergers up to redshifts \(z \sim 1.5\) \citep{LSC2025}. Thanks to their unprecedented sensitivity, next generation detectors (Cosmic Explorer, Einstein Telescope) will be able to detect \acrshort{bbh} mergers beyond \(z \sim 20\) \citep{Abac2025,Evans2021}, unveiling a whole new segment of the \acrshort{bbh} population.
+% More details about ET/CE (number of detection compared to LVK)? ---> Maybe in the discussion.
+
+One of the main goals of \acrshort{gw} astrophysics is to uncover the properties of merging \acrlong{bh}s (\acrshort{bh}) and \acrlong{ns}s (\acrshort{ns}), shedding light on the origin of the observed population. With next generation detectors we will be able to map the \acrshort{bbh} merger rate beyond the current limits, accessing the unexplored epoch of the formation of the first stars. Not only the overall mass distribution, but we will reconstruct the distribution as a function of redshift, allowing us to investigate how \acrshort{bh}s progenitors form and evolve \citep{Abac2025}. But \textbf{how well do we need to measure \acrshort{bbh} mergers to infer the population properties at a given \textit{\acrfull{z_t}} with sufficient precision to learn conclusively if and how they differ from what we infer at redshift \(\sim 0\)?}
+
+\Acrlong{cbc}s (\acrshort{cbc}) detectable by ground-based detectors originate from the evolution of massive stars (\(\gtrsim 8\ \msun\)). Due to the short evolutionary timescales of such stars, the formation rate of stellar \acrshort{bh}s follows the overall cosmic \acrfull{sfh}. However, the time delay between the formation of a \acrfull{bhb} and a merger spans a wide range of values, from few \(\mathrm{Myr}\)s to the Hubble time \citep{Boesky2024}. Those \acrshort{bh}s originate from different formation channels and across cosmic history. The efficiency of different formation channels is environment dependent, especially on metallicity \citep{Son2025}. Population synthesis models reveal a correlation between the formation channel, the final \acrshort{bh} mass, and the \acrfull{dtd} \citep{Son2022}. This prediceted correlation unlocks the scientific potential of mapping the \acrshort{bbh}s population in the exotic environments of the high redshift Universe.
+
+The population observed in the local universe, however, is composed by a mixture of \acrshort{bbh} coming from both the short-delay and the long-delay channels. Therefore it contains systems coming from very different environments across the cosmic history. Because of that, selecting sources at \acrshort{z_t} is the most direct way to ensure that the observed \acrlong{dco}s (\acrshort{dco}) originate from stars formed at redshifts \(> z_t\). By making appropriate choices for \acrshort{z_t} we can select sources that formed in environments significantly different from the local one, for example in terms of metallicity. By comparing the \acrshort{bbh} population at \acrshort{z_t} with that at \(z \sim 0\), we can begin to disentangle the cosmic history and the relative contribution of different stellar evolutionary pathways.
+
+We developed a toy model to give precise predictions of what we need to measure in order to infer a certain level of variation of the \acrshort{cbc} population across different redshifts. The final purpose of the model is understanding wheter and to what level a network of third generation detectors (Einstein Telescope and Cosmic Explorer) will allow us to make conclusive statements on the evolution and origins of \acrshort{dco}. More specifically, \textit{we explore the measurement requirements to infer a variation of the merger rate density between the \acrfull{z_t} and a reference redshift \(\zref\) in a fixed mass bin.} We explain the reasons behind our choices of the \acrlong{z_t}s and the mass bins in \cref{sec:z_t_intro,sec:m_dist}.
+
+\subsection{Merger rate density}
+The key feature of our toy model is the possibility to infer the confidence interval of the merger rate density ratio between the \acrshort{bbh} mergers subpopulation in two different \acrlong{mzb}s (\acrshort{mzb}), given a set of detected events falling inside such bins. This requires to connect the actual number of observations \(N\) to the intrinsic merger rate density \(\Rate\) of the subpopulation. That is because there are selection effects \citep{Gerosa2020,Gerosa2024,Chen2017} that mask the true population of mergers in the universe. Among these effects are: luminosity distance, chirp mass, binary spins, source orinetation, sky location, detector sensitivity.
+
+The combination of all the selection effects determines the \acrshort{gw} detectability---or detection probability, \(\pdet\). The detectability is then directly related to another key quantity, the so-called effective spacetime volume \(\VT\) \citep{Gerosa2020,Abbott2016,Kapadia2020}. \(\VT\) connects the number of detections to the intrinsic merger rate density by combining \(\pdet\), the observed comoving volume, and the time transformation between the detector frame and the source rest-frame (more details in~\cref{sec:}). Finally, these quantities are related by:
+\begin{equation}\label{eq:R-N_VT}
+    \Rate = \dfrac{N}{\VT}.
+\end{equation}
+
+\Cref{eq:R-N_VT} plays a crucial role when we our task is the comparison of two different \acrshort{mzb}s. For instance, consider two \acrshort{mzb}s, both centered at \(40\ msun\) but at different redshifts, let's say \(z \sim 1\) and \(z \sim 5\). The detectability would be higher for the low redshift bin, but, depending on the width of the bins in redshift, also the associated comoving volume spherical shells will differ by some factor (of order unity in this case). These informations are encoded into the \(\VT\) value for each bin (in general, for an \acrshort{mzb}, an higher \(\VT\) reflects a higher sensitivity of the detector for events in that bin). The informations contained into \(\VT\) are then propagated through~\cref{eq:R-N_VT} when we take the ratio of the merger rate denisities between the two bins. Let's (irrealistically) say that in the same observation time we detect the same number of events in both bins; then the merger rate density ratio we could infer would not be \(1\), but the ratio of the \(\VT\)s of the two bins. This concept is expanded in our toy model to also take into account the poissonian uncertainty of the measurment in each bin. The details of the model are reported in~\cref{sec:}.
+
+\subsection{Target redshift}\label{sec:z_t_intro}
+As we already mentioned, we want to define measurment requirements of \acrshort{bbh} mergers for a significantly different astrophysical population compared to the one we observe locally (at \(z \sim 0\)). However, the observable \acrshort{cbc} population contains systems formed through the entire cosmic history. That is a consequence of the \acrfull{dtd} between \acrlong{dco}s (\acrshort{dco}) formation and merger \citep{Mennekens2016,Abac2025}. In that sense, selecting sources at a given \acrfull{z_t} is the most straightforward way to ensure that the observed \acrshort{dco} mergers originated from stellar progenitors that formed and evolved at \(z_\text{form} > z_t\). But how do we choose \acrshort{z_t} so that the selected progenitor population is significantly different from the local one?
+
+Only second to mass, metallicity is fundamental for stellar evolution and \acrshort{dco} formation. The most significant and direct effect of metallicity on massive stars is its control over mass loss rates via stellar winds \citep{Chowdhury2024}. Stars in high metallicity environments can lose a substantial fraction of their initial mass before they undergo core collapse. Conversly, stars in low metallicity environments, typical of the early Universe, experience much weaker winds and therefore retain a significantly larger fraction of their mass throughout their evolution \citep{Vink2001}. This directly translates to the masses of the resulting \acrshort{bh}s. The dependence of the maximum \acrshort{bh} mass on metallicity is a robust prediction of stellar evolution models, with more massive remnants being sistematically produced in more metal poor environments \citep{Belczynski2010,Spera2015}. Metallicity also influences the opacity and the nuclear burning processes inside the star, which in turns affect its radius at varius stages of its evolution, especially during post-main sequence stages \citep{Xin2022,Romagnolo2023}.
+
+The complex interplay of metallicity-dependent stellar winds and radii propagate through the evolutionary processes that form merging \acrshort{bbh}s. Different formation channels are characterized by distinct initial conditions, but the overall trend is a significant increase in formation efficiency at lower metallicities \citep{Chruslinska2018,Son2025,Klencki2018,Giacobbo2018,Neijssel2019}.
+
+The choice of the \acrlong{z_t} has to reflect our need of disentangling the environmental effects and the \acrshort{bbh}s properties across the cosmic history. Based on that, we operatively define \acrshort{z_t} as the redshift at which the majority of stars (\(\gtrsim 90\%\)) formed with a metallicity \(Z\) significantly lower than the solar one (\(\lesssim 0.1 Z_\odot\)). Despite our toy model does not make any assumption about how the \acrshort{cbc} properties evolves, the choice of \acrshort{z_t} inevitably needs to rely on how the \acrshort{sfh} depends on redshift and metallicity. The metallicity-dependent \acrshort{sfh} can be obtained combining the distribution of galaxy stellar masses, with the distributions describing the star formation rates and metallicities of galaxies at fixed stellar mass. A detailed discussion can be found in~\cite{Chruslinska2019,Chruslinska2021}. Nevertheless, the final outcome is affected by uncertainties related to the assumed empirical scaling relations. That is, the choice of \acrshort{z_t} is model dependent. We show in~\cref{sec:} that in the optimistic case the target redshift can be set at \(z_t \sim 4\), while in the pessimistic case it can be as high as \(z_t \sim 8\).
+
+\subsection{Mass distribution}\label{sec:m_dist}
+Stellar evolution, binary interaction and metallicity, all leave an imprint on the \acrshort{bbh} merger mass distribution. The mass spectrum observed by the \acrfull{lvk} collaboration exhibits several structures that are linked to the underlying formation physics \citep{LSC2025}. The origin of these features provides the astrophysical context for selecting specific mass bins to probe a population evolution.
+
+The most robustly detected feature is a peak in the primary mass distribution at \(\sim 10\ \msun\). This low-mass peak is thought to be predominantly produced by the evolution of isolated massive binaries \citep{Giacobbo2018,Neijssel2019,Wiktorowicz2019}. In addition to this, a second, broader, significant feature is present at \(\sim 35\ \msun\). At higher masses the merger rate appears to decline more steeply. The origin of this structure is object of debate, being linked to the evolution of the most massive stellar progenitors.
+
+Broadly speaking we can distinguish two main classes of formation channels, the isolated channel and the dynamical channel. Within the isolated scenario we can further identify three main subchannels: the \acrfull{ce} channel, the stable \acrfull{mt} channel, and \acrfull{che} \citep{Chruslinska2022,Abac2025,Neijssel2019,Li2025}. Population synthesis models suggest that the \acrshort{ce} and stable \acrshort{mt} channels are the major contributors to the low-mass population \citep{Neijssel2019,Li2025}. The high-mass peak could originate from the “pile-up'' of masses caused by \acrfull{ppisne} \citep{Woosley2017}, but this explanation is in tension with most recent stellar evolution simulations \citep{Stevenson2019,Woosley2021,Hendriks2023,Tong2025}. \Acrshort{che} might be the major conntributor to the \(\sim 35\ M_\odot\) mass spectrum feature \citep{Riley2021,Li2025}. At even higher masses (\(65\ \msun \lesssim M_\mathrm{He} \lesssim 160\ \msun\)), stellar evolution models predict a dearth of \acrshort{bh}s, known as the \acrfull{pisn} mass gap \citep{Woosley2021,Tong2025}. The metallicity-dependent efficiency of these processes must be carefully reminded to perform physically informative subpopulations comparisons across different redshifts (metallicities).
+
+% Symplifying assumption
+The mass ratio distribution of \acrshort{bbh}s mergers should also be considered in a population analysis. While we are not discussing the astrophysical origin of the mass ratio distribution, we make use of the most recent results from~\cite{LSC2025} to select reasonable values for our work. Specifically, it seems that \acrshort{bh}s with masses \(\sim 10\ \msun\) preferentially merge with lighter \acrshort{bh}s, pointing to a value of the mass ratio around \(q \sim 0.8\). \Acrshort{bh}s with masses \(\sim 35\ \msun\), on the other hand, may preferentially merge with other \acrshort{bh}s with more equal masses, reason why we prefer a value of the mass ratio \(q \sim 1\).
+
+\textcolor{red}{maybe elaborate a bit more?} We propose an analysis of the “low'' (\(\sim 10\ \msun\)) and “high'' (\(\sim 35\ \msun\)) mass bins (using fixed mass ratios) by means of our merger rate density toy model. Can we infer a population variation from future measurements? At what level? We present our results in~\cref{sec:}.
+
+\section{Merger rate density toy model}
+Our framework does not rely on any assumption on the underlying true astrophysical population of \acrshort{dco}s. Our goal is infering the merger rate denisity of \acrshort{bbh}s in a given \acrshort{mzb} given: \begin{enumerate*}\item A detector network;\item A set of measurments from the network in the chosen bin.\end{enumerate*} At surface level the main operation performed is set by~\cref{eq:R-N_VT}, where \(\VT\) is defined by point 1, and \(N\) by point 2. To this we need to integrate the poisson uncertainty associated with a counting process. Moreover, we are interested in the ratio between merger rates between different bins. In the next sections we explain how we treat the number of detected events \(N\) (and its uncertainty), the spacetime volume sensitivity \(\VT\), and crucially how their information content propagates to the merger rate densities ratio. The final result consists in a straightforward way to retrieve the confidence interval of the merger rate densities ratio between two \acrshort{mzb}. From now on we will refer to the two bins as the “target'' and the “reference'' bins, and our main goal will be estimating the value of \(\Rate_t / \Rate_\text{ref}\) from observations.
+
+\subsection{Poisson uncertainty}
+Given the number of detections inside the target bin (\(N_t\)) and the reference bin (\(N_\text{ref}\)), can we conclude that \(N_t / N_\text{ref} \neq N_0\)? The answer cleary depends on the values of \(N_t\) and \(N_\text{ref}\) through the fact that the number of detections inside each bin is poisson distributed. We developed two different approaches to answer the question: one is powered by a \acrfull{lrt}, and the other one by bayesian inference methods. In~\cref{sec:} we show that the two approaches give similar results \textcolor{red}{(in some specific regime? in general?)} and we prefer the latter for its semplicity.
+
+\subsubsection{Likelihood-ratio test}
+The \acrshort{lrt} is a hypothesis test that involves comparing the likelihoods of two nested models: a full model, and a reduced model that is a subset of the full model where we impose some restrictions. The restricted model makes the null hypothesis \(\mathcal{H}_0\). The testing procedure involves obtaining the \acrfull{mle} for the parameters under \(\mathcal{H}_0\) and \(\mathcal{H}_1\), respectively \(\hat{\theta}_0\) and \(\hat{\theta}\), and computing the test statistic \(\lambda_\text{LR} = -2 \qty[\ell(\theta_0) - \ell(\hat{\theta})]\) \citep{Koch1988}, where \(\ell\) denotes the log-likelihood. By Wilks' theorem \citep{Wilks1938}, \(\lambda_\text{LR}\) converges asymptotically to being \(\chi^2\)-distributed under \(\mathcal{H}_0\).
+
+We define our likelihood to be the product of two poissonians with expectation values \(\lambda_t\) and \(\lambda_\text{ref}\): \(\mathcal{L}(\lambda_t, \lambda_\text{ref}) = \mathrm{Pois}(\lambda_t) \times \mathrm{Pois}(\lambda_\text{ref})\). We reparametrize \(\mathcal{L}\) as a function of \(\lambda_\text{ref}\) and \(\alpha = \lambda_t / \lambda_\text{ref}\) and we compute the test statistic for the null hypothesis \(\alpha = \alpha_0\). It turns out that:
+\begin{equation}
+    \lambda_\text{LR} = 2 N_\text{ref} \qty[\alpha\ln\qty(\dfrac{\alpha}{\alpha_0}) - \qty(1 + \alpha) \ln\qty(\dfrac{1 + \alpha}{1 + \alpha_0})].
+\end{equation}
+Mathematical details can be found in~\cref{apx:lrt}.
+
+Our likelihood has two parameters, one of which is fixed. Therefore \(\lambda_\text{LR}\) is asymptotically \(\chi^2\)-distributed with 1 degree of freedom. The 95\% confidence interval for \(\alpha = \lambda_t / \lambda_\text{ref}\) can be found with a root finding algorithm for a fixed choice of \(\alpha_0\) and \(N_\text{ref}\).
+
+\section{Results}\label{sec:results}
+\subsection{How likely can we detect BHB?}
+\Cref{fig:pdet_map} shows the detecatibility of \acrshort{bbh} mergers in the primary mass-redshift space for equal mass ratio \acrshort{bhb}s. Thanks to the high sensitivity of third generation detectors, most \acrshort{bbh} mergers happening at \(z \lesssim 1\) should be virtually detectable, with the exception of the lowest mass ratio binaries.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{images/pdet_map.png}
+    \caption{Detection probability colormap as a function of the primary \acrshort{bh} mass and redhsift, for an equal mass ratio \acrshort{bhb}. Colored lines mark the 0.5 probability levels (white band in the colormap for \(q = 1\)) for different choices of the mass ratio.\(\ p_\text{det}\) is computed for an ET + CE network assuming an isotropic distribution of sources and averaging over spins distribution.}\label{fig:pdet_map}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\columnwidth]{images/pdet_and_VT_trends.png}
+    \caption{\textit{Top}: \(\VT\) evolution with redshift for different choices of the mass bins for equal mass ratio \acrshort{bhb}s. Position and value of the peak depend on the choice of the bin widths, both in the mass and redshift dimensions. The solid line represents the (redshift integrated) cosmology-dependent factor in the expression for \(\VT\). It is the comoving volume spherical shell covered by a redshift bin divided by \(1 + z\) times the observation time of the detector (\(\Tobs = 1\ \yr\) in the plot). The faster \(\VT\) decline for lower masses after the peak is determined by lower detection probabilitiy at high redshifts (see~\cref{fig:pdet_map}). \textit{Bottom}: detection probability dependence with primary mass for equal mass ratio \acrshort{bhb}s for different fixed redhsifts.}\label{fig:pdet_and_VT}
+\end{figure}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=\textwidth]{images/Nratio_zt_map.png}
+    \includegraphics[width=\textwidth]{images/Nratio_zt_detmap.png}
+    \caption{\textit{Top}: merger rate density ratio colormap for fixed mass bins between the “target'' and the “reference'' redshift bins as a function of the \acrlong{z_t} and the number of detected events ratio. The black solid line in the top-side panel represents the \(\VT\) evolution for the presented choice of the \(z_t\) axis. \textit{Bottom}: merger rate density ratio \(95\%\) confidence intervals where we can infer different values of variation (on the colorbars) for fixed mass bins. \textit{Left}: low mass bin \(m_1 \in [inf, sup]\ \msun\) with fixed mass ratio \(q = 0.8\). \textit{Right}: high mass bin \(m_1 \in [inf, sup]\ \msun\) with fixed mass ratio \(q = 1\).\newline
+    Dashed orange lines mark the \(95\%\) confidence interval where we can infer \(\Rate_t / \Rate_\text{ref} = 1\). The vertical red dotted line marks the position of the center of the reference redshift bin. Results in these plots are computed using a fixed redshift bin width of \(z_w = 0.1\) and fixed choices of the “reference'' number of events: \(N_\text{ref} = 10\).}\label{fig:N_zt_map}
+\end{figure*}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=\textwidth]{images/zt_zref_detmap.png}
+    \caption{Merger rate density ratio \(95\%\) confidence intervals where we can infer different values of variation (on the colorbars) for fixed mass bins: \(m_1 \in [inf, sup]\ \msun\) with \(q = 0.8\) (\textit{Left}) and \(m_1 \in [inf, sup]\ \msun\) with \(q = 1\) (\textit{Right}). Dotted orange lines mark the \(95\%\) confidence interval for \(\Rate_t / \Rate_\text{ref} = 1\). Results are shown in the \(z_t\ \text{vs.}\ z_\text{ref}\) plane for \(N_t / N_\text{ref} = 1\), redshift bin widths \(z_w = 0.1\), and \(N_\text{ref} = 10\).}\label{fig:zt_zref_map}
+\end{figure*}
+
+\appendix
+\section{Likelihood-ratio test}\label{apx:lrt}
+
+\bibliographystyle{mnras}
+\bibliography{bibliography.bib}
+
+\end{document}
