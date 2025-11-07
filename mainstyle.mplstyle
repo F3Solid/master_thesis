@@ -1,9 +1,18 @@
-font.size : 14
+font.size : 25
 
 xtick.top: True
 ytick.right: True
-xtick.major.size: 4
-ytick.major.size: 4
+xtick.minor.visible: True
+ytick.minor.visible: True
+xtick.major.size: 10
+ytick.major.size: 10
+xtick.minor.size: 6
+ytick.minor.size: 6
 
-legend.frameon: False
+lines.linewidth: 4.5
+patch.linewidth: 2
+
 legend.framealpha: 0.5
+
+savefig.dpi: 300
+savefig.bbox: tight
