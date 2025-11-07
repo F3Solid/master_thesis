@@ -3,3 +3,11 @@ MetalCosfr_cp_for_STM_analysis-main
 .ipynb_checkpoints/
 data/GWTC4/
 pdet_gwbench_grid_making.log
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
